@@ -29,6 +29,18 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32g4xx_hal.h"
 
+#include "stm32g4xx_ll_ucpd.h"
+#include "stm32g4xx_ll_bus.h"
+#include "stm32g4xx_ll_cortex.h"
+#include "stm32g4xx_ll_rcc.h"
+#include "stm32g4xx_ll_system.h"
+#include "stm32g4xx_ll_utils.h"
+#include "stm32g4xx_ll_pwr.h"
+#include "stm32g4xx_ll_gpio.h"
+#include "stm32g4xx_ll_dma.h"
+
+#include "stm32g4xx_ll_exti.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -49,6 +61,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -57,6 +71,82 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define STAT_BKUP_Pin GPIO_PIN_13
+#define STAT_BKUP_GPIO_Port GPIOC
+#define OSC32_IN_Pin GPIO_PIN_14
+#define OSC32_IN_GPIO_Port GPIOC
+#define OSC32_OUT_Pin GPIO_PIN_15
+#define OSC32_OUT_GPIO_Port GPIOC
+#define CHG_STAT2_Pin GPIO_PIN_0
+#define CHG_STAT2_GPIO_Port GPIOF
+#define CHG_STAT1_Pin GPIO_PIN_1
+#define CHG_STAT1_GPIO_Port GPIOF
+#define ENC0_A_Pin GPIO_PIN_0
+#define ENC0_A_GPIO_Port GPIOC
+#define ENC0_B_Pin GPIO_PIN_1
+#define ENC0_B_GPIO_Port GPIOC
+#define EN_5V_Pin GPIO_PIN_2
+#define EN_5V_GPIO_Port GPIOC
+#define VUSB_Pin GPIO_PIN_3
+#define VUSB_GPIO_Port GPIOC
+#define ENC1_Z_Pin GPIO_PIN_0
+#define ENC1_Z_GPIO_Port GPIOA
+#define GPS_1PPS_Pin GPIO_PIN_1
+#define GPS_1PPS_GPIO_Port GPIOA
+#define CLK_32K_Pin GPIO_PIN_2
+#define CLK_32K_GPIO_Port GPIOA
+#define DRV_PWM_Pin GPIO_PIN_3
+#define DRV_PWM_GPIO_Port GPIOA
+#define DRV_DIR_Pin GPIO_PIN_4
+#define DRV_DIR_GPIO_Port GPIOA
+#define CAM0_CTRL_Pin GPIO_PIN_5
+#define CAM0_CTRL_GPIO_Port GPIOA
+#define SERVO_PWM0_Pin GPIO_PIN_6
+#define SERVO_PWM0_GPIO_Port GPIOA
+#define SERVO_PWM1_Pin GPIO_PIN_7
+#define SERVO_PWM1_GPIO_Port GPIOA
+#define ENC0_Z_Pin GPIO_PIN_4
+#define ENC0_Z_GPIO_Port GPIOC
+#define CAM1_CTRL_Pin GPIO_PIN_5
+#define CAM1_CTRL_GPIO_Port GPIOC
+#define SERVO_PWM2_Pin GPIO_PIN_0
+#define SERVO_PWM2_GPIO_Port GPIOB
+#define SERVO_PWM3_Pin GPIO_PIN_1
+#define SERVO_PWM3_GPIO_Port GPIOB
+#define IMU_nCS_Pin GPIO_PIN_2
+#define IMU_nCS_GPIO_Port GPIOB
+#define MAGEXT_nCS_Pin GPIO_PIN_10
+#define MAGEXT_nCS_GPIO_Port GPIOB
+#define MAG_nCS_Pin GPIO_PIN_11
+#define MAG_nCS_GPIO_Port GPIOB
+#define BMP_nCS_Pin GPIO_PIN_12
+#define BMP_nCS_GPIO_Port GPIOB
+#define ENC1_A_Pin GPIO_PIN_6
+#define ENC1_A_GPIO_Port GPIOC
+#define ENC1_B_Pin GPIO_PIN_7
+#define ENC1_B_GPIO_Port GPIOC
+#define SWDIO_Pin GPIO_PIN_13
+#define SWDIO_GPIO_Port GPIOA
+#define SWCLK_Pin GPIO_PIN_14
+#define SWCLK_GPIO_Port GPIOA
+#define XBEE_RST_Pin GPIO_PIN_15
+#define XBEE_RST_GPIO_Port GPIOA
+#define XBEE_RX_Pin GPIO_PIN_10
+#define XBEE_RX_GPIO_Port GPIOC
+#define XBEE_TX_Pin GPIO_PIN_11
+#define XBEE_TX_GPIO_Port GPIOC
+#define GPS_RX_Pin GPIO_PIN_12
+#define GPS_RX_GPIO_Port GPIOC
+#define GPS_TX_Pin GPIO_PIN_2
+#define GPS_TX_GPIO_Port GPIOD
+#define SWO_Pin GPIO_PIN_3
+#define SWO_GPIO_Port GPIOB
+#define GPS_RST_Pin GPIO_PIN_5
+#define GPS_RST_GPIO_Port GPIOB
+#define HEARTBEAT_Pin GPIO_PIN_7
+#define HEARTBEAT_GPIO_Port GPIOB
+#define BUZZER_Pin GPIO_PIN_9
+#define BUZZER_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
