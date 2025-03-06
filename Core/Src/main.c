@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -74,57 +74,56 @@ WWDG_HandleTypeDef hwwdg;
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
-  .stack_size = 128 * 4
-};
+    .name = "defaultTask",
+    .priority = (osPriority_t)osPriorityNormal,
+    .stack_size = 128 * 4};
 /* Definitions for Read_Sensors */
 osThreadId_t Read_SensorsHandle;
-uint32_t Read_SensorsBuffer[ 128 ];
+uint32_t Read_SensorsBuffer[128];
 osStaticThreadDef_t Read_SensorsControlBlock;
 const osThreadAttr_t Read_Sensors_attributes = {
-  .name = "Read_Sensors",
-  .stack_mem = &Read_SensorsBuffer[0],
-  .stack_size = sizeof(Read_SensorsBuffer),
-  .cb_mem = &Read_SensorsControlBlock,
-  .cb_size = sizeof(Read_SensorsControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "Read_Sensors",
+    .stack_mem = &Read_SensorsBuffer[0],
+    .stack_size = sizeof(Read_SensorsBuffer),
+    .cb_mem = &Read_SensorsControlBlock,
+    .cb_size = sizeof(Read_SensorsControlBlock),
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for Read_Commands */
 osThreadId_t Read_CommandsHandle;
-uint32_t Read_CommandsBuffer[ 128 ];
+uint32_t Read_CommandsBuffer[128];
 osStaticThreadDef_t Read_CommandsControlBlock;
 const osThreadAttr_t Read_Commands_attributes = {
-  .name = "Read_Commands",
-  .stack_mem = &Read_CommandsBuffer[0],
-  .stack_size = sizeof(Read_CommandsBuffer),
-  .cb_mem = &Read_CommandsControlBlock,
-  .cb_size = sizeof(Read_CommandsControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "Read_Commands",
+    .stack_mem = &Read_CommandsBuffer[0],
+    .stack_size = sizeof(Read_CommandsBuffer),
+    .cb_mem = &Read_CommandsControlBlock,
+    .cb_size = sizeof(Read_CommandsControlBlock),
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for Camera_Control */
 osThreadId_t Camera_ControlHandle;
-uint32_t Camera_ControlBuffer[ 128 ];
+uint32_t Camera_ControlBuffer[128];
 osStaticThreadDef_t Camera_ControlControlBlock;
 const osThreadAttr_t Camera_Control_attributes = {
-  .name = "Camera_Control",
-  .stack_mem = &Camera_ControlBuffer[0],
-  .stack_size = sizeof(Camera_ControlBuffer),
-  .cb_mem = &Camera_ControlControlBlock,
-  .cb_size = sizeof(Camera_ControlControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "Camera_Control",
+    .stack_mem = &Camera_ControlBuffer[0],
+    .stack_size = sizeof(Camera_ControlBuffer),
+    .cb_mem = &Camera_ControlControlBlock,
+    .cb_size = sizeof(Camera_ControlControlBlock),
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* Definitions for Send_Telemetry */
 osThreadId_t Send_TelemetryHandle;
-uint32_t Send_TelemetryBuffer[ 128 ];
+uint32_t Send_TelemetryBuffer[128];
 osStaticThreadDef_t Send_TelemetryControlBlock;
 const osThreadAttr_t Send_Telemetry_attributes = {
-  .name = "Send_Telemetry",
-  .stack_mem = &Send_TelemetryBuffer[0],
-  .stack_size = sizeof(Send_TelemetryBuffer),
-  .cb_mem = &Send_TelemetryControlBlock,
-  .cb_size = sizeof(Send_TelemetryControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
+    .name = "Send_Telemetry",
+    .stack_mem = &Send_TelemetryBuffer[0],
+    .stack_size = sizeof(Send_TelemetryBuffer),
+    .cb_mem = &Send_TelemetryControlBlock,
+    .cb_size = sizeof(Send_TelemetryControlBlock),
+    .priority = (osPriority_t)osPriorityLow,
 };
 /* USER CODE BEGIN PV */
 
@@ -167,9 +166,9 @@ void SendTelemetry(void *argument);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -215,7 +214,7 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-  //make sure we init mission parameters
+  // make sure we init mission parameters
   init_mission_data();
 
   /* USER CODE END 2 */
@@ -280,9 +279,9 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -290,19 +289,18 @@ void SystemClock_Config(void)
   RCC_CRSInitTypeDef pInit = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1_BOOST);
 
   /** Configure LSE Drive Capability
-  */
+   */
   HAL_PWR_EnableBkUpAccess();
   __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48
-                              |RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE;
+   * in the RCC_OscInitTypeDef structure.
+   */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48 | RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -321,9 +319,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -337,15 +334,15 @@ void SystemClock_Config(void)
   HAL_RCCEx_EnableLSCO(RCC_LSCOSOURCE_LSE);
 
   /** Enable the SYSCFG APB clock
-  */
+   */
   __HAL_RCC_CRS_CLK_ENABLE();
 
   /** Configures CRS
-  */
+   */
   pInit.Prescaler = RCC_CRS_SYNC_DIV1;
   pInit.Source = RCC_CRS_SYNC_SOURCE_LSE;
   pInit.Polarity = RCC_CRS_SYNC_POLARITY_RISING;
-  pInit.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000,32768);
+  pInit.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000, 32768);
   pInit.ErrorLimitValue = 34;
   pInit.HSI48CalibrationValue = 32;
 
@@ -353,10 +350,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief ADC1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_ADC1_Init(void)
 {
 
@@ -372,7 +369,7 @@ static void MX_ADC1_Init(void)
   /* USER CODE END ADC1_Init 1 */
 
   /** Common config
-  */
+   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -395,7 +392,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure the ADC multi-mode
-  */
+   */
   multimode.Mode = ADC_MODE_INDEPENDENT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
@@ -403,7 +400,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure Regular Channel
-  */
+   */
   sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
@@ -417,14 +414,13 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief I2C3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_I2C3_Init(void)
 {
 
@@ -450,14 +446,14 @@ static void MX_I2C3_Init(void)
   }
 
   /** Configure Analogue filter
-  */
+   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure Digital filter
-  */
+   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
   {
     Error_Handler();
@@ -465,14 +461,13 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
-
 }
 
 /**
-  * @brief IRTIM Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief IRTIM Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_IRTIM_Init(void)
 {
 
@@ -486,14 +481,13 @@ static void MX_IRTIM_Init(void)
   /* USER CODE BEGIN IRTIM_Init 2 */
 
   /* USER CODE END IRTIM_Init 2 */
-
 }
 
 /**
-  * @brief IWDG Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief IWDG Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_IWDG_Init(void)
 {
 
@@ -515,14 +509,13 @@ static void MX_IWDG_Init(void)
   /* USER CODE BEGIN IWDG_Init 2 */
 
   /* USER CODE END IWDG_Init 2 */
-
 }
 
 /**
-  * @brief RNG Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief RNG Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_RNG_Init(void)
 {
 
@@ -542,14 +535,13 @@ static void MX_RNG_Init(void)
   /* USER CODE BEGIN RNG_Init 2 */
 
   /* USER CODE END RNG_Init 2 */
-
 }
 
 /**
-  * @brief RTC Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief RTC Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_RTC_Init(void)
 {
 
@@ -562,7 +554,7 @@ static void MX_RTC_Init(void)
   /* USER CODE END RTC_Init 1 */
 
   /** Initialize RTC Only
-  */
+   */
   hrtc.Instance = RTC;
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
   hrtc.Init.AsynchPrediv = 127;
@@ -578,7 +570,7 @@ static void MX_RTC_Init(void)
   }
 
   /** Enable the reference Clock input
-  */
+   */
   if (HAL_RTCEx_SetRefClock(&hrtc) != HAL_OK)
   {
     Error_Handler();
@@ -586,14 +578,13 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
-
 }
 
 /**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief SPI2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_SPI2_Init(void)
 {
 
@@ -626,14 +617,13 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
-
 }
 
 /**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM1_Init(void)
 {
 
@@ -688,14 +678,13 @@ static void MX_TIM1_Init(void)
   /* USER CODE BEGIN TIM1_Init 2 */
 
   /* USER CODE END TIM1_Init 2 */
-
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM3_Init(void)
 {
 
@@ -759,14 +748,13 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /**
-  * @brief TIM4 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM4 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM4_Init(void)
 {
 
@@ -808,14 +796,13 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
-
 }
 
 /**
-  * @brief TIM8 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM8 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM8_Init(void)
 {
 
@@ -870,14 +857,13 @@ static void MX_TIM8_Init(void)
   /* USER CODE BEGIN TIM8_Init 2 */
 
   /* USER CODE END TIM8_Init 2 */
-
 }
 
 /**
-  * @brief TIM15 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM15 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM15_Init(void)
 {
 
@@ -936,14 +922,13 @@ static void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 2 */
   HAL_TIM_MspPostInit(&htim15);
-
 }
 
 /**
-  * @brief TIM16 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM16 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM16_Init(void)
 {
 
@@ -998,14 +983,13 @@ static void MX_TIM16_Init(void)
   /* USER CODE BEGIN TIM16_Init 2 */
 
   /* USER CODE END TIM16_Init 2 */
-
 }
 
 /**
-  * @brief TIM17 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM17 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM17_Init(void)
 {
 
@@ -1060,14 +1044,13 @@ static void MX_TIM17_Init(void)
   /* USER CODE BEGIN TIM17_Init 2 */
 
   /* USER CODE END TIM17_Init 2 */
-
 }
 
 /**
-  * @brief UART4 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief UART4 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_UART4_Init(void)
 {
 
@@ -1108,14 +1091,13 @@ static void MX_UART4_Init(void)
   /* USER CODE BEGIN UART4_Init 2 */
 
   /* USER CODE END UART4_Init 2 */
-
 }
 
 /**
-  * @brief UART5 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief UART5 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_UART5_Init(void)
 {
 
@@ -1156,14 +1138,13 @@ static void MX_UART5_Init(void)
   /* USER CODE BEGIN UART5_Init 2 */
 
   /* USER CODE END UART5_Init 2 */
-
 }
 
 /**
-  * @brief UCPD1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief UCPD1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_UCPD1_Init(void)
 {
 
@@ -1197,14 +1178,13 @@ static void MX_UCPD1_Init(void)
   /* USER CODE BEGIN UCPD1_Init 2 */
 
   /* USER CODE END UCPD1_Init 2 */
-
 }
 
 /**
-  * @brief WWDG Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief WWDG Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_WWDG_Init(void)
 {
 
@@ -1227,19 +1207,18 @@ static void MX_WWDG_Init(void)
   /* USER CODE BEGIN WWDG_Init 2 */
 
   /* USER CODE END WWDG_Init 2 */
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -1249,24 +1228,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, STAT_BKUP_Pin|EN_5V_Pin|CAM1_CTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin|CAM0_CTRL_Pin|XBEE_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
-                          |GPS_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : STAT_BKUP_Pin EN_5V_Pin CAM1_CTRL_Pin */
-  GPIO_InitStruct.Pin = STAT_BKUP_Pin|EN_5V_Pin|CAM1_CTRL_Pin;
+  GPIO_InitStruct.Pin = STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : CHG_STAT2_Pin CHG_STAT1_Pin */
-  GPIO_InitStruct.Pin = CHG_STAT2_Pin|CHG_STAT1_Pin;
+  GPIO_InitStruct.Pin = CHG_STAT2_Pin | CHG_STAT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
@@ -1278,7 +1256,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(CLK_32K_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DRV_DIR_Pin CAM0_CTRL_Pin XBEE_RST_Pin */
-  GPIO_InitStruct.Pin = DRV_DIR_Pin|CAM0_CTRL_Pin|XBEE_RST_Pin;
+  GPIO_InitStruct.Pin = DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1286,8 +1264,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : IMU_nCS_Pin MAGEXT_nCS_Pin MAG_nCS_Pin BMP_nCS_Pin
                            GPS_RST_Pin */
-  GPIO_InitStruct.Pin = IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
-                          |GPS_RST_Pin;
+  GPIO_InitStruct.Pin = IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1312,8 +1289,8 @@ static void MX_GPIO_Init(void)
   /**/
   __HAL_SYSCFG_FASTMODEPLUS_ENABLE(SYSCFG_FASTMODEPLUS_PB9);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -1322,10 +1299,10 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief  Function implementing the defaultTask thread.
+ * @param  argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
@@ -1333,7 +1310,7 @@ void StartDefaultTask(void *argument)
   MX_USB_Device_Init();
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -1342,19 +1319,19 @@ void StartDefaultTask(void *argument)
 
 /* USER CODE BEGIN Header_ReadSensors */
 /**
-* @brief Function implementing the Read_Sensors thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Read_Sensors thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_ReadSensors */
 void ReadSensors(void *argument)
 {
   /* USER CODE BEGIN ReadSensors */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-	  //check the mission_data, if MODE is 'S' then ignore pressure sensor reading
-	  //read command will update the mission_data pressure instead
+    // check the mission_data, if MODE is 'S' then ignore pressure sensor reading
+    // read command will update the mission_data pressure instead
     osDelay(1);
   }
   /* USER CODE END ReadSensors */
@@ -1362,43 +1339,44 @@ void ReadSensors(void *argument)
 
 /* USER CODE BEGIN Header_ReadCommands */
 /**
-* @brief Function implementing the Read_Commands thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Read_Commands thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_ReadCommands */
 void ReadCommands(void *argument)
 {
   /* USER CODE BEGIN ReadCommands */
   /* Infinite loop */
-  //activate interrupt for xbee uart
+  // activate interrupt for xbee uart
   HAL_UART_Receive_IT(&huart4, uart_rx_buffer4, UART_BUFFER_SIZE);
-  for(;;)
+  for (;;)
   {
-	  //only enter and decode command when full command received, using global uart flag
-	  if(uart4_data_ready){
-		  //reset flag first
-		  uart4_data_ready = 0;
+    // only enter and decode command when full command received, using global uart flag
+    if (uart4_data_ready)
+    {
+      // reset flag first
+      uart4_data_ready = 0;
 
-		  //use cmd_status for debugging
-		  CMD_STATUS cmd_status = process_command((char*) uart_rx_buffer4, &global_mission_data);
-	  }
+      // use cmd_status for debugging
+      CMD_STATUS cmd_status = process_command((char *)uart_rx_buffer4, &global_mission_data);
+    }
   }
   /* USER CODE END ReadCommands */
 }
 
 /* USER CODE BEGIN Header_CameraControl */
 /**
-* @brief Function implementing the Camera_Control thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Camera_Control thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_CameraControl */
 void CameraControl(void *argument)
 {
   /* USER CODE BEGIN CameraControl */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
     osDelay(1);
   }
@@ -1407,26 +1385,58 @@ void CameraControl(void *argument)
 
 /* USER CODE BEGIN Header_SendTelemetry */
 /**
-* @brief Function implementing the Send_Telemetry thread.
-* @param argument: Not used
-* @retval None
-*/
+ * @brief Function implementing the Send_Telemetry thread.
+ * @param argument: Not used
+ * @retval None
+ */
 /* USER CODE END Header_SendTelemetry */
 void SendTelemetry(void *argument)
 {
   /* USER CODE BEGIN SendTelemetry */
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
+    // create buffer to copy mission data into
+    // +8 is for null terminator
+    char telemetry_string[sizeof(global_mission_data) + 8];
+
+    // void pointer to accommodate varying data types
+    void *data_pointer = &global_mission_data;
+
+    // loop over the struct and write individual bytes to string buffer
+    for (unsigned int i = 0; i < sizeof(global_mission_data); i++)
+    {
+      // find string index to replace
+      unsigned int string_size = strlen(telemetry_string);
+      // cast bytes of data to unsigned chars (ASCII characters)
+      unsigned char data = *(unsigned char *)(data_pointer);
+      telemetry_string[string_size] = data;
+      telemetry_string[string_size + 1] = '\0'; // replace null terminator
+
+      // move to next byte of data
+      data_pointer = data_pointer + 1;
+    }
+
+    /*
+    telemetry_string[] now contains global_mission_data formatted as a string of characters
+    data in LITTLE ENDIAN format:
+      TEAM_ID = 3174 = 0x0C66 and is stored as ASCII codes 0x66 ('f') followed by 0x0C (NP form feed) in the string
+
+    string format is as follows:
+      string[0:1] = TEAM_ID[1:0]
+    */
+
+    // how to actually transmit to XBEE?
+
     osDelay(1);
   }
   /* USER CODE END SendTelemetry */
 }
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -1438,14 +1448,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
