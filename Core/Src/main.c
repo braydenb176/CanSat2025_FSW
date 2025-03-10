@@ -1417,13 +1417,41 @@ void SendTelemetry(void *argument)
       data_pointer = data_pointer + 1;
     }
 
+    char test_string[] = "TESTLEMETRY";
+
     /*
     telemetry_string[] now contains global_mission_data formatted as a string of characters
     data in LITTLE ENDIAN format:
       TEAM_ID = 3174 = 0x0C66 and is stored as ASCII codes 0x66 ('f') followed by 0x0C (NP form feed) in the string
 
-    string format is as follows:
+
+
+    string format is as follows in terms of bytes:
       string[0:1] = TEAM_ID[1:0]
+      string[2:5] = MISSION_TIME[3:0] <-- format to UTC time (hh:mm:ss)
+      string[6:9] = PACKET_COUNT[3:0]
+      string[10] = MODE
+      string[11:20] = STATE[0:9]
+      string[21:24] = ALTITUDE[3:0]
+      string[25:28] = TEMPERATURE[3:0]
+      string[29:32] = PRESSURE[3:0]
+      string[33:36] = VOLTAGE[3:0]
+      string[37:40] = GYRO_R[3:0]
+      string[41:44] = GYRO_P[3:0]
+      string[45:48] = GYRO_Y[3:0]
+      string[49:52] = ACCEL_R[3:0]
+      string[53:56] = ACCEL_P[3:0]
+      string[57:60] = ACCEL_Y[3:0]
+      string[61:64] = MAG_R[3:0]
+      string[65:68] = MAG_P[3:0]
+      string[69:72] = MAG_Y[3:0]
+      string[73:74] = AUTO_GYRO_ROTATION_RATE[1:0]
+      string[75:78] = GPS_TIME[3:0]
+      string[79:82] = GPS_ALTITUDE[3:0]
+      string[83:86] = GPS_LATITUDE[3:0]
+      string[87:90] = GPS_LONGITUDE[3:0]
+      string[91] = GPS_SATS
+      string[92:101] = CMD_ECHO[0:9]
     */
 
     // how to actually transmit to XBEE?
