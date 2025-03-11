@@ -11,13 +11,12 @@
 #include "stm32g4xx_hal.h"
 #include "string.h"
 
-#define STATE_TEXT_LEN 10
+#define STATE_TEXT_LEN 14 //13 max, plus 1 for null char
 #define CMD_ECHO_LEN 10
 
 //flags
 
 extern volatile uint8_t transmit_enable;
-extern volatile uint8_t simulation_enable;
 
 //structs
 
@@ -59,5 +58,7 @@ typedef struct {
 } Mission_Data;
 
 extern Mission_Data global_mission_data;
+
+void init_mission_data(void);
 
 #endif /* INC_GLOBAL_H_ */

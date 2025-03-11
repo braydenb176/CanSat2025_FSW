@@ -12,13 +12,13 @@
 
 #define UART_BUFFER_SIZE 32
 
-extern UART_HandleTypeDef huart4;
+extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart5;
 
-extern uint8_t uart_rx_buffer4[UART_BUFFER_SIZE];
-extern uint8_t uart_rx_buffer5[UART_BUFFER_SIZE];
+extern uint8_t uart_rx_buffer3[];
+extern uint8_t uart_rx_buffer5[];
 
-extern volatile uint8_t uart4_data_ready;
+extern volatile uint8_t uart3_data_ready;
 extern volatile uint8_t uart5_data_ready;
 
 void clear_uart_buffer(UART_HandleTypeDef *huart);

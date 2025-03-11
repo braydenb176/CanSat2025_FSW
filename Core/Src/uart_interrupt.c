@@ -7,10 +7,10 @@
 
 #include "uart_interrupt.h"
 
-uint8_t uart_rx_buffer4[UART_BUFFER_SIZE];
+uint8_t uart_rx_buffer3[UART_BUFFER_SIZE];
 uint8_t uart_rx_buffer5[UART_BUFFER_SIZE];
 
-volatile uint8_t uart4_data_ready = 0;
+volatile uint8_t uart3_data_ready = 0;
 volatile uint8_t uart5_data_ready = 0;
 
 void clear_uart_buffer(UART_HandleTypeDef *huart){
@@ -19,11 +19,11 @@ void clear_uart_buffer(UART_HandleTypeDef *huart){
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-	if(huart == &huart4){ //xbee
-		uart4_data_ready = 1;
+	if(huart == &huart3){ //xbee
+		uart3_data_ready = 1;
 
 		//reactivate uart4 interrupt, entering this callback disables it
-		HAL_UART_Receive_IT(huart, uart_rx_buffer4, UART_BUFFER_SIZE);
+		HAL_UART_Receive_IT(huart, uart_rx_buffer3, UART_BUFFER_SIZE);
 	}else if(huart == &huart5){ //gps
 
 	}

@@ -14,7 +14,7 @@
 #include "stdio.h"
 #include "ctype.h"
 
-//macro, no function call overhead (kinda over the top but its still an optimization
+//macro, no function call overhead (kinda over the top but its still an optimization)
 #define UTC_TO_INT(time_str) ( \
     ((time_str)[0] - '0') * 10 * 3600 + ((time_str)[1] - '0') * 3600 + \
     ((time_str)[3] - '0') * 10 * 60 + ((time_str)[4] - '0') * 60 + \
@@ -24,7 +24,6 @@
 #define CMD_HEADER_SIZE 9
 
 //these include the null char, ie TEAM_ID_SIZE is 4 chars plus 1 for null char
-#define TEAM_ID_SIZE 5
 #define MAX_CMD_SIZE 5
 #define MAX_CX_SIZE 4
 #define MAX_ST_SIZE 9
@@ -35,8 +34,7 @@
 typedef enum {
 	CMD_OK,
 	CMD_INVLD,
-	CMD_ID_WRONG,
-	CMD_ID_INVLD,
+	CMD_HEADER_INVLD,
 	CMD_CX_ON,
 	CMD_CX_OFF,
 	CMD_CX_INVLD,
@@ -55,5 +53,6 @@ typedef enum {
 } CMD_STATUS;
 
 CMD_STATUS process_command(char* incoming, Mission_Data* mission_data);
+void run_command_test_cases(Mission_Data* mission_data);
 
 #endif /* INC_COMMANDS_H_ */
