@@ -1,7 +1,7 @@
 ﻿# CanSat2025_FSW
 
 
- When pulling the main branch, run the "Device Configuration Tool Code Generation." The button is in the top bar and has a yellow gear.
+ When pulling the main branch, run the "Device Configuration Tool Code Generation." The button is in the top bar and has a yellow gear and prevents build errors.
 
 Todo: 
 1. Setup I2C, SPI, and UART connection to related sensors
