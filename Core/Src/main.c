@@ -1390,41 +1390,55 @@ void CameraControl(void *argument)
  * @retval None
  */
 /* USER CODE END Header_SendTelemetry */
+
 void SendTelemetry(void *argument)
 {
+  // this can probably be dynamically typed to take the sizeof() each property instead of being hardcoded
+  unsigned int property_sizes[] = {2, 4, 4, 1, STATE_TEXT_LEN, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 1, CMD_ECHO_LEN};
+
   /* USER CODE BEGIN SendTelemetry */
   /* Infinite loop */
   for (;;)
   {
     // create buffer to copy mission data into
-    // +8 is for null terminator
-    char telemetry_string[sizeof(global_mission_data) + 8];
+    // +19 for all necessary commas
+    char telemetry_string[sizeof(global_mission_data) + 19];
+    char *data_pointer = &global_mission_data;
 
-    // void pointer to accommodate varying data types
-    void *data_pointer = &global_mission_data;
+    // external index!!
+    unsigned int s_index = 0;
 
-    // loop over the struct and write individual bytes to string buffer
-    for (unsigned int i = 0; i < sizeof(global_mission_data); i++)
+    // find length of array
+    unsigned int num_properties = sizeof(property_sizes) / sizeof(unsigned int);
+    for (unsigned int k = 0; k < num_properties; k++)
     {
-      // find string index to replace
-      unsigned int string_size = strlen(telemetry_string);
-      // cast bytes of data to unsigned chars (ASCII characters)
-      unsigned char data = *(unsigned char *)(data_pointer);
-      telemetry_string[string_size] = data;
-      telemetry_string[string_size + 1] = '\0'; // replace null terminator
+      // memcpy() transfers 'k' bytes of data from the struct to the string
+      memcpy(telemetry_string + index, data_pointer, property_sizes[k]);
 
-      // move to next byte of data
-      data_pointer = data_pointer + 1;
+      // move the data pointer and the string pointer separately (commas in the
+      // resulting string mean the two positions are not always equal)
+      data_pointer += property_sizes[k];
+      s_index += property_sizes[k];
+
+      // don't add a comma after the last property!
+      if (k < num_properties - 1)
+      {
+        telemetry_string[s_index] = ',';
+        s_index = s_index + 1;
+      }
     }
 
-    char test_string[] = "TESTLEMETRY";
+    // after copying all the data over, add a null terminator at the end
+    telemetry_string[s_index] = '\0';
+
+    // char test_string[] = "TESTLEMETRY";
+
+    // HAL_UART_Transmit(&huart4, test_string, sizeof(test_string), 250);
 
     /*
     telemetry_string[] now contains global_mission_data formatted as a string of characters
     data in LITTLE ENDIAN format:
       TEAM_ID = 3174 = 0x0C66 and is stored as ASCII codes 0x66 ('f') followed by 0x0C (NP form feed) in the string
-
-
 
     string format is as follows in terms of bytes:
       string[0:1] = TEAM_ID[1:0]
@@ -1453,8 +1467,6 @@ void SendTelemetry(void *argument)
       string[91] = GPS_SATS
       string[92:101] = CMD_ECHO[0:9]
     */
-
-    // how to actually transmit to XBEE?
 
     osDelay(1);
   }
