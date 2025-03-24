@@ -19,14 +19,16 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "usbpd.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+//#include "tracer_emb.h"
+//#include "tracer_emb_hw.h"
 #include "global.h"
 #include "commands.h"
 #include "uart_interrupt.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,6 +40,10 @@ typedef StaticTask_t osStaticThreadDef_t;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+//#define T4_PRE 16199
+//#define T4_CNT 9999
+//#define PWM_1 4999
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,9 +54,11 @@ typedef StaticTask_t osStaticThreadDef_t;
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 
-I2C_HandleTypeDef hi2c3;
+CORDIC_HandleTypeDef hcordic;
 
-IWDG_HandleTypeDef hiwdg;
+FMAC_HandleTypeDef hfmac;
+
+I2C_HandleTypeDef hi2c3;
 
 RNG_HandleTypeDef hrng;
 
@@ -60,23 +68,28 @@ SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim16;
 TIM_HandleTypeDef htim17;
 
-UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart5;
+UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart3_tx;
 
-WWDG_HandleTypeDef hwwdg;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-    .name = "defaultTask",
-    .priority = (osPriority_t)osPriorityNormal,
-    .stack_size = 128 * 4};
+/* Definitions for Camera_Control */
+osThreadId_t Camera_ControlHandle;
+uint32_t Camera_ControlBuffer[ 128 ];
+osStaticThreadDef_t Camera_ControlControlBlock;
+const osThreadAttr_t Camera_Control_attributes = {
+  .name = "Camera_Control",
+  .stack_mem = &Camera_ControlBuffer[0],
+  .stack_size = sizeof(Camera_ControlBuffer),
+  .cb_mem = &Camera_ControlControlBlock,
+  .cb_size = sizeof(Camera_ControlControlBlock),
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* Definitions for Read_Sensors */
 osThreadId_t Read_SensorsHandle;
 uint32_t Read_SensorsBuffer[128];
@@ -101,18 +114,6 @@ const osThreadAttr_t Read_Commands_attributes = {
     .cb_size = sizeof(Read_CommandsControlBlock),
     .priority = (osPriority_t)osPriorityLow,
 };
-/* Definitions for Camera_Control */
-osThreadId_t Camera_ControlHandle;
-uint32_t Camera_ControlBuffer[128];
-osStaticThreadDef_t Camera_ControlControlBlock;
-const osThreadAttr_t Camera_Control_attributes = {
-    .name = "Camera_Control",
-    .stack_mem = &Camera_ControlBuffer[0],
-    .stack_size = sizeof(Camera_ControlBuffer),
-    .cb_mem = &Camera_ControlControlBlock,
-    .cb_size = sizeof(Camera_ControlControlBlock),
-    .priority = (osPriority_t)osPriorityLow,
-};
 /* Definitions for Send_Telemetry */
 osThreadId_t Send_TelemetryHandle;
 uint32_t Send_TelemetryBuffer[128];
@@ -132,10 +133,10 @@ const osThreadAttr_t Send_Telemetry_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_IRTIM_Init(void);
-static void MX_IWDG_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM1_Init(void);
@@ -144,16 +145,15 @@ static void MX_TIM8_Init(void);
 static void MX_TIM15_Init(void);
 static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
-static void MX_UART4_Init(void);
 static void MX_UART5_Init(void);
-static void MX_UCPD1_Init(void);
-static void MX_WWDG_Init(void);
 static void MX_RNG_Init(void);
-static void MX_TIM4_Init(void);
-void StartDefaultTask(void *argument);
+static void MX_UCPD1_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_CORDIC_Init(void);
+static void MX_FMAC_Init(void);
+void CameraControl(void *argument);
 void ReadSensors(void *argument);
 void ReadCommands(void *argument);
-void CameraControl(void *argument);
 void SendTelemetry(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -162,6 +162,10 @@ void SendTelemetry(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+//uint8_t rx_buf[8];
+//uint8_t tx_buf[64];
+uint8_t tx_buf[] = {'H', 'E', 'L', 'L', 'O'};
 
 /* USER CODE END 0 */
 
@@ -173,6 +177,16 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+
+  /** Enable the reference Clock input
+  */
+	// DO NOT ENABLE UNTIL 1PPS IS AVAILABLE.
+  /*
+  if (HAL_RTCEx_SetRefClock(&hrtc) != HAL_OK)
+  {
+	Error_Handler();
+  }
+  */
 
   /* USER CODE END 1 */
 
@@ -194,10 +208,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_I2C3_Init();
   MX_IRTIM_Init();
-  MX_IWDG_Init();
   MX_RTC_Init();
   MX_SPI2_Init();
   MX_TIM1_Init();
@@ -206,21 +220,31 @@ int main(void)
   MX_TIM15_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
-  MX_UART4_Init();
   MX_UART5_Init();
-  MX_UCPD1_Init();
-  MX_WWDG_Init();
   MX_RNG_Init();
-  MX_TIM4_Init();
+  MX_UCPD1_Init();
+  MX_USART3_UART_Init();
+  MX_CORDIC_Init();
+  MX_FMAC_Init();
   /* USER CODE BEGIN 2 */
 
-  // make sure we init mission parameters
-  init_mission_data();
+  // Start the heartbeat in PWM mode - output will be on PB6
+  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
+
+  // Feedback LED
+  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
+
+  // Enable GPS and XBEE
+  HAL_GPIO_WritePin(XBEE_RST_GPIO_Port, XBEE_RST_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPS_RST_GPIO_Port, GPS_RST_Pin, GPIO_PIN_SET);
+  //HAL_UART_Transmit(&huart3, tx_buf, 5, 100);
 
   /* USER CODE END 2 */
 
   /* Init scheduler */
   osKernelInitialize();
+  /* USBPD initialisation ---------------------------------*/
+  MX_USBPD_Init();
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
@@ -239,17 +263,14 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of Camera_Control */
+  Camera_ControlHandle = osThreadNew(CameraControl, NULL, &Camera_Control_attributes);
 
   /* creation of Read_Sensors */
   Read_SensorsHandle = osThreadNew(ReadSensors, NULL, &Read_Sensors_attributes);
 
   /* creation of Read_Commands */
   Read_CommandsHandle = osThreadNew(ReadCommands, NULL, &Read_Commands_attributes);
-
-  /* creation of Camera_Control */
-  Camera_ControlHandle = osThreadNew(CameraControl, NULL, &Camera_Control_attributes);
 
   /* creation of Send_Telemetry */
   Send_TelemetryHandle = osThreadNew(SendTelemetry, NULL, &Send_Telemetry_attributes);
@@ -271,9 +292,13 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+
   }
   /* USER CODE END 3 */
 }
@@ -289,8 +314,9 @@ void SystemClock_Config(void)
   RCC_CRSInitTypeDef pInit = {0};
 
   /** Configure the main internal regulator output voltage
-   */
-  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1_BOOST);
+
+  */
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Configure LSE Drive Capability
    */
@@ -309,7 +335,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 21;
+  RCC_OscInitStruct.PLL.PLLN = 8;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -326,7 +352,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -371,7 +397,7 @@ static void MX_ADC1_Init(void)
   /** Common config
    */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.GainCompensation = 0;
@@ -412,15 +438,68 @@ static void MX_ADC1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-
+  HAL_ADCEx_Calibration_Start(&hadc1,ADC_SINGLE_ENDED);
+  HAL_ADC_Start(&hadc1);
   /* USER CODE END ADC1_Init 2 */
 }
 
 /**
- * @brief I2C3 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief CORDIC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CORDIC_Init(void)
+{
+
+  /* USER CODE BEGIN CORDIC_Init 0 */
+
+  /* USER CODE END CORDIC_Init 0 */
+
+  /* USER CODE BEGIN CORDIC_Init 1 */
+
+  /* USER CODE END CORDIC_Init 1 */
+  hcordic.Instance = CORDIC;
+  if (HAL_CORDIC_Init(&hcordic) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CORDIC_Init 2 */
+
+  /* USER CODE END CORDIC_Init 2 */
+
+}
+
+/**
+  * @brief FMAC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_FMAC_Init(void)
+{
+
+  /* USER CODE BEGIN FMAC_Init 0 */
+
+  /* USER CODE END FMAC_Init 0 */
+
+  /* USER CODE BEGIN FMAC_Init 1 */
+
+  /* USER CODE END FMAC_Init 1 */
+  hfmac.Instance = FMAC;
+  if (HAL_FMAC_Init(&hfmac) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN FMAC_Init 2 */
+
+  /* USER CODE END FMAC_Init 2 */
+
+}
+
+/**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_I2C3_Init(void)
 {
 
@@ -432,7 +511,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x20501E65;
+  hi2c3.Init.Timing = 0x00602173;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -484,38 +563,11 @@ static void MX_IRTIM_Init(void)
 }
 
 /**
- * @brief IWDG Initialization Function
- * @param None
- * @retval None
- */
-static void MX_IWDG_Init(void)
-{
 
-  /* USER CODE BEGIN IWDG_Init 0 */
-
-  /* USER CODE END IWDG_Init 0 */
-
-  /* USER CODE BEGIN IWDG_Init 1 */
-
-  /* USER CODE END IWDG_Init 1 */
-  hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
-  hiwdg.Init.Window = 4095;
-  hiwdg.Init.Reload = 4095;
-  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN IWDG_Init 2 */
-
-  /* USER CODE END IWDG_Init 2 */
-}
-
-/**
- * @brief RNG Initialization Function
- * @param None
- * @retval None
- */
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_RNG_Init(void)
 {
 
@@ -751,58 +803,10 @@ static void MX_TIM3_Init(void)
 }
 
 /**
- * @brief TIM4 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM4_Init(void)
-{
-
-  /* USER CODE BEGIN TIM4_Init 0 */
-
-  /* USER CODE END TIM4_Init 0 */
-
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-  TIM_OC_InitTypeDef sConfigOC = {0};
-
-  /* USER CODE BEGIN TIM4_Init 1 */
-
-  /* USER CODE END TIM4_Init 1 */
-  htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
-  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim4.Init.Period = 65535;
-  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_PWM_Init(&htim4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM4_Init 2 */
-
-  /* USER CODE END TIM4_Init 2 */
-  HAL_TIM_MspPostInit(&htim4);
-}
-
-/**
- * @brief TIM8 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief TIM8 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_TIM8_Init(void)
 {
 
@@ -1047,57 +1051,10 @@ static void MX_TIM17_Init(void)
 }
 
 /**
- * @brief UART4 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_UART4_Init(void)
-{
-
-  /* USER CODE BEGIN UART4_Init 0 */
-
-  /* USER CODE END UART4_Init 0 */
-
-  /* USER CODE BEGIN UART4_Init 1 */
-
-  /* USER CODE END UART4_Init 1 */
-  huart4.Instance = UART4;
-  huart4.Init.BaudRate = 115200;
-  huart4.Init.WordLength = UART_WORDLENGTH_8B;
-  huart4.Init.StopBits = UART_STOPBITS_1;
-  huart4.Init.Parity = UART_PARITY_NONE;
-  huart4.Init.Mode = UART_MODE_TX_RX;
-  huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  if (HAL_UARTEx_DisableFifoMode(&huart4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN UART4_Init 2 */
-
-  /* USER CODE END UART4_Init 2 */
-}
-
-/**
- * @brief UART5 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief UART5 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_UART5_Init(void)
 {
 
@@ -1141,10 +1098,58 @@ static void MX_UART5_Init(void)
 }
 
 /**
- * @brief UCPD1 Initialization Function
- * @param None
- * @retval None
- */
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 921600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * @brief UCPD1 Initialization Function
+  * @param None
+  * @retval None
+  */
 static void MX_UCPD1_Init(void)
 {
 
@@ -1172,6 +1177,46 @@ static void MX_UCPD1_Init(void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  /* UCPD1 DMA Init */
+
+  /* UCPD1_RX Init */
+  LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_1, LL_DMAMUX_REQ_UCPD1_RX);
+
+  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_1, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+
+  LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PRIORITY_LOW);
+
+  LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MODE_NORMAL);
+
+  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PERIPH_NOINCREMENT);
+
+  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MEMORY_INCREMENT);
+
+  LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PDATAALIGN_BYTE);
+
+  LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MDATAALIGN_BYTE);
+
+  /* UCPD1_TX Init */
+  LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_2, LL_DMAMUX_REQ_UCPD1_TX);
+
+  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_2, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
+
+  LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PRIORITY_LOW);
+
+  LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MODE_NORMAL);
+
+  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PERIPH_NOINCREMENT);
+
+  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MEMORY_INCREMENT);
+
+  LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PDATAALIGN_BYTE);
+
+  LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MDATAALIGN_BYTE);
+
+  /* UCPD1 interrupt Init */
+  NVIC_SetPriority(UCPD1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
+  NVIC_EnableIRQ(UCPD1_IRQn);
+
   /* USER CODE BEGIN UCPD1_Init 1 */
 
   /* USER CODE END UCPD1_Init 1 */
@@ -1181,32 +1226,25 @@ static void MX_UCPD1_Init(void)
 }
 
 /**
- * @brief WWDG Initialization Function
- * @param None
- * @retval None
- */
-static void MX_WWDG_Init(void)
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
 {
 
-  /* USER CODE BEGIN WWDG_Init 0 */
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
-  /* USER CODE END WWDG_Init 0 */
-
-  /* USER CODE BEGIN WWDG_Init 1 */
-
-  /* USER CODE END WWDG_Init 1 */
-  hwwdg.Instance = WWDG;
-  hwwdg.Init.Prescaler = WWDG_PRESCALER_1;
-  hwwdg.Init.Window = 64;
-  hwwdg.Init.Counter = 64;
-  hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
-  if (HAL_WWDG_Init(&hwwdg) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN WWDG_Init 2 */
-
-  /* USER CODE END WWDG_Init 2 */
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+  /* DMA1_Channel2_IRQn interrupt configuration */
+  NVIC_SetPriority(DMA1_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
+  NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  /* DMA1_Channel3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 }
 
 /**
@@ -1234,7 +1272,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
+                          |GPS_RST_Pin|USR_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : STAT_BKUP_Pin EN_5V_Pin CAM1_CTRL_Pin */
   GPIO_InitStruct.Pin = STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin;
@@ -1263,8 +1302,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : IMU_nCS_Pin MAGEXT_nCS_Pin MAG_nCS_Pin BMP_nCS_Pin
-                           GPS_RST_Pin */
-  GPIO_InitStruct.Pin = IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin;
+                           GPS_RST_Pin USR_LED_Pin */
+  GPIO_InitStruct.Pin = IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
+                          |GPS_RST_Pin|USR_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1289,26 +1329,33 @@ static void MX_GPIO_Init(void)
   /**/
   __HAL_SYSCFG_FASTMODEPLUS_ENABLE(SYSCFG_FASTMODEPLUS_PB9);
 
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-  /* USER CODE END MX_GPIO_Init_2 */
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+  // SET GPS RST PIN TO OPEN DRAIN NO PULL
+  GPIO_InitStruct.Pin = GPS_RST_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+/* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_CameraControl */
 /**
- * @brief  Function implementing the defaultTask thread.
- * @param  argument: Not used
- * @retval None
- */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+  * @brief  Function implementing the Camera_Control thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_CameraControl */
+void CameraControl(void *argument)
 {
   /* init code for USB_Device */
   MX_USB_Device_Init();
   /* USER CODE BEGIN 5 */
+  init_mission_data();
   /* Infinite loop */
   for (;;)
   {
@@ -1328,12 +1375,10 @@ void ReadSensors(void *argument)
 {
   /* USER CODE BEGIN ReadSensors */
   /* Infinite loop */
-  for (;;)
-  {
-    // check the mission_data, if MODE is 'S' then ignore pressure sensor reading
-    // read command will update the mission_data pressure instead
-    osDelay(1);
-  }
+	for(;;)
+	{
+		osDelay(1);
+	}
   /* USER CODE END ReadSensors */
 }
 
@@ -1347,40 +1392,27 @@ void ReadSensors(void *argument)
 void ReadCommands(void *argument)
 {
   /* USER CODE BEGIN ReadCommands */
-  /* Infinite loop */
-  // activate interrupt for xbee uart
-  HAL_UART_Receive_IT(&huart4, uart_rx_buffer4, UART_BUFFER_SIZE);
-  for (;;)
-  {
-    // only enter and decode command when full command received, using global uart flag
-    if (uart4_data_ready)
-    {
-      // reset flag first
-      uart4_data_ready = 0;
+	/* Infinite loop */
 
-      // use cmd_status for debugging
-      CMD_STATUS cmd_status = process_command((char *)uart_rx_buffer4, &global_mission_data);
-    }
-  }
+	//have debug mode, which allows for example commands to be hardcoded.
+	//if cmd debug on, then run full test suite.
+	run_command_test_cases(&global_mission_data);
+
+	for(;;)
+	{
+//	  //only enter and decode command when full command received, using global uart flag
+//	  if(uart3_data_ready){
+//		  //reset flag first
+//		  uart3_data_ready = 0;
+//
+//		  //use cmd_status for debugging, otherwise dont need it
+//		  process_command((char*) uart_rx_buffer3, &global_mission_data);
+//		  //CMD_STATUS cmd_status = process_command((char*) uart_rx_buffer4, &global_mission_data);
+//	  }
+		uint8_t test = 1;
+		osDelay(1);
+	}
   /* USER CODE END ReadCommands */
-}
-
-/* USER CODE BEGIN Header_CameraControl */
-/**
- * @brief Function implementing the Camera_Control thread.
- * @param argument: Not used
- * @retval None
- */
-/* USER CODE END Header_CameraControl */
-void CameraControl(void *argument)
-{
-  /* USER CODE BEGIN CameraControl */
-  /* Infinite loop */
-  for (;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END CameraControl */
 }
 
 /* USER CODE BEGIN Header_SendTelemetry */
@@ -1474,9 +1506,30 @@ void SendTelemetry(void *argument)
 }
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -1484,6 +1537,10 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+	  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
+	  HAL_Delay(200);
+	  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
+	  HAL_Delay(200);
   }
   /* USER CODE END Error_Handler_Debug */
 }

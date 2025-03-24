@@ -16,6 +16,11 @@
   *
   ******************************************************************************
   */
+
+#ifndef _TRACE
+#define _TRACE
+#endif
+
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -71,6 +76,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define T4_PRE 7199
+#define T4_CNT 9999
+#define PWM_1 4999
+#define CONST 1
 #define STAT_BKUP_Pin GPIO_PIN_13
 #define STAT_BKUP_GPIO_Port GPIOC
 #define OSC32_IN_Pin GPIO_PIN_14
@@ -131,10 +140,6 @@ void Error_Handler(void);
 #define SWCLK_GPIO_Port GPIOA
 #define XBEE_RST_Pin GPIO_PIN_15
 #define XBEE_RST_GPIO_Port GPIOA
-#define XBEE_RX_Pin GPIO_PIN_10
-#define XBEE_RX_GPIO_Port GPIOC
-#define XBEE_TX_Pin GPIO_PIN_11
-#define XBEE_TX_GPIO_Port GPIOC
 #define GPS_RX_Pin GPIO_PIN_12
 #define GPS_RX_GPIO_Port GPIOC
 #define GPS_TX_Pin GPIO_PIN_2
@@ -143,8 +148,8 @@ void Error_Handler(void);
 #define SWO_GPIO_Port GPIOB
 #define GPS_RST_Pin GPIO_PIN_5
 #define GPS_RST_GPIO_Port GPIOB
-#define HEARTBEAT_Pin GPIO_PIN_7
-#define HEARTBEAT_GPIO_Port GPIOB
+#define USR_LED_Pin GPIO_PIN_7
+#define USR_LED_GPIO_Port GPIOB
 #define BUZZER_Pin GPIO_PIN_9
 #define BUZZER_GPIO_Port GPIOB
 

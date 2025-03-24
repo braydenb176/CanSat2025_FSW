@@ -12,7 +12,7 @@ volatile uint8_t simulation_enable = 0;
 
 Mission_Data global_mission_data = {0};
 
-void init_mission_data(){
+void init_mission_data(void){
 	memset(&global_mission_data, 0, sizeof(global_mission_data));
 
 	global_mission_data.TEAM_ID = 3174;
