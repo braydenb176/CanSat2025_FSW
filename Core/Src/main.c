@@ -1405,6 +1405,252 @@ void ReadCommands(void *argument)
 }
 
 /* USER CODE BEGIN Header_SendTelemetry */
+void TestTelemetry(char *telemetry_string){
+	// I am not sure if the syntax is how C but the index should be the correct spot based on the psuedocode
+
+	// Commas and Space will be a byte each so they need to be skipped.
+
+
+	// 2 bytes - telemetry_string[0:1]
+	int16_t test_team_ID = ((int16_t)telemetry_string[0] << 4) | (int16_t)telemetry_string[1];
+
+	// Comma-Space - telemetry_string[2:3]
+
+	//   3 bytes - 1 for hour, minute, and second each,
+	// + 2 bytes for colon in between (SKIP).
+	// 5 bytes - telemetry_string[4:8]
+	uint32_t test_mission_time = ((uint32_t)telemetry_string[4] * 60 * 60) + ((uint32_t)telemetry_string[6] * 60) + ((uint32_t)telemetry_string[8]);
+
+	// Comma-Space - telemetry_string[9:10]
+
+	// 4 bytes - telemetry_string[11:14]
+	uint32_t test_packet_count = ((uint32_t)telemetry_string[11] << 12)+ ((uint32_t)telemetry_string[12] << 8)+ ((uint32_t)telemetry_string[13] << 4) + (uint32_t)telemetry_string[14];
+
+	// Comma-Space - telemetry_string[15:16]
+
+	// 1 byte = telemetry_string[17]
+	char test_mode = telemetry_string[17];
+
+	// Comma-Space - telemetry_string[18:19]
+
+	// 14 bytes - telemetry_string[20:33]
+	char test_state[14];
+	for (int i = 0; i < 14; i++){
+		test_state[i] = telemetry_string[19+i];
+	}
+
+	// Comma-Space - telemetry_string[34:35]
+
+	// 4 bytes - telemetry_string[36:39]
+	float test_altitude;
+	char alt[4] = {telemetry_string[36], telemetry_string[37], telemetry_string[38], telemetry_string[39]};
+	memcpy(&test_attribute, &alt, sizeof(test_altitude));
+
+	// Comma - Space - telemetry_string[40:41]
+
+	// 4 bytes - telemetry_string[42:45]
+	float test_temperature;
+	char temp[4] = {telemetry_string[42], telemetry_string[43], telemetry_string[44], telemetry_string[45]};
+	memcpy(&test_temperature, &temp, sizeof(test_temperature));
+
+	// Comma-Space - telemetry_string[46:47]
+
+	// 4 bytes - telemetry_string[48:51]
+	float test_pressure;
+	char pres[4]= {telemetry_string[48], telemetry_string[49], telemetry_string[50], telemetry_string[51]};
+	memcpy(&test_pressure, &pres, sizeof(test_pressure));
+
+	// Comma-Space - telemetry_string[52:53]
+
+	// 4 bytes - telemetry_string[54:57]
+	float test_voltage;
+	char volt[4] = {telemetry_string[54], telemetry_string[55], telemetry_string[56], telemetry_string[57]};
+	memcpy(&test_voltage, &volt, sizeof(test_voltage));
+
+	// Comma-Space - telemetry_string[58:59]
+
+	// 4 bytes - telemetry_string[60:63]
+	float test_gyro_r;
+	float gyro_r[4] = {telemetry_string[60], telemetry_string[61], telemetry_string[62], telemetry_string[63]};
+	memcpy(&test_gyro_r, &gyro_r, sizeof(test_gyro_r));
+
+	// Comma-Space - telemetry_string[64:65]
+
+	// 4 bytes - telemetry_string[66:69]
+	float test_gyro_p;
+	float gyro_p[4] = {telemetry_string[60], telemetry_string[61], telemetry_string[62], telemetry_string[63]};
+	memcpy(&test_gyro_p, &gyro_p, sizeof(test_gyro_p));
+
+	// Comma-Space - telemetry_string[70:71]
+
+	// 4 bytes - telemetry_string[72:75]
+	float test_gyro_y;
+	float gyro_y[4] = {telemetry_string[60], telemetry_string[61], telemetry_string[62], telemetry_string[63]};
+	memcpy(&test_gyro_y, &gyro_y, sizeof(test_gyro_y));
+
+	// Comma-Space - telemetry_string[76:77]
+
+	// 4 bytes - telemetry_string[78:81]
+	float test_accel_r;
+	float accel_r[4] = {telemetry_string[78], telemetry_string[79], telemetry_string[80], telemetry_string[81]};
+	memcpy(&test_accel_r, &accel_r, sizeof(test_accel_r));
+
+	// Comma-Space - telemetry_string[82:83]
+
+	// 4 bytes - telemetry_string[84:87]
+	float test_accel_p;
+	float accel_p[4] = {telemetry_string[84], telemetry_string[85], telemetry_string[86], telemetry_string[87]};
+	memcpy(&test_accel_r, &accel_r, sizeof(test_accel_r));
+
+	// Comma-Space - telemetry_string[88:89]
+
+	// 4 bytes - telemetry_string[90:93]
+	float test_accel_y;
+	float accel_y[4] = {telemetry_string[78], telemetry_string[79], telemetry_string[80], telemetry_string[81]};
+	memcpy(&test_accel_y, &accel_y, sizeof(test_accel_y));
+
+
+	// Comma-Space - telemetry_string[94:95]
+
+	// 4 bytes - telemetry_string[96:99]
+	float test_mag_r;
+	float mag_r[4] = {telemetry_string[96], telemetry_string[97], telemetry_string[98], telemetry_string[99]};
+	memcpy(&test_mag_r, &mag_r, sizeof(test_mag_r));
+
+	// Comma-Space - telemetry_string[100:101]
+
+	// 4 bytes - telemetry_string[102:105]
+	float test_mag_p;
+	float mag_p[4] = {telemetry_string[102], telemetry_string[103], telemetry_string[104], telemetry_string[105]};
+	memcpy(&test_mag_p, &mag_p, sizeof(test_mag_p));
+
+	// Comma-Space - telemetry_string[106:107]
+
+	// 4 bytes - telemetry_string[108:111]
+	float test_mag_y;
+	float mag_y[4] = {telemetry_string[108], telemetry_string[109], telemetry_string[110], telemetry_string[111]};
+	memcpy(&test_mag_y, &mag_y, sizeof(test_mag_y));
+
+	// Comma-Space - telemetry_string[112:113]
+
+	// 2 bytes - telemetry_string[114:115]
+
+	int16_t test_gyro_rate = ((int16_t)telemetry_string[114] << 4) | (int16_t)telemetry_string[115];
+
+	// Comma-Space - telemetry_string[116:117]
+
+	//   3 bytes - 1 for hour, minute, and second each,
+	// + 2 bytes for colon in between (SKIP).
+	// 5 bytes - telemetry_string[118:122]
+	uint32_t test_gps_time = ((uint32_t)telemetry_string[118] * 60 * 60) + ((uint32_t)telemetry_string[119] * 60) + ((uint32_t)telemetry_string[121]);
+
+	// Comma-Space - telemetry_string[123:124]
+
+	// 4 bytes - telemetry_string[125:128]
+	float test_gps_altitude;
+	float gps_alt[4] = {telemetry_string[125], telemetry_string[126], telemetry_string[127], telemetry_string[128]};
+	memcpy(&test_gps_altitude, &gps_alt, sizeof(test_gps_altitude));
+
+	// Comma-Space - telemetry_string[129:130]
+
+	// 4 bytes - telemetry_string[131:134]
+	float test_gps_latitude;
+	float gps_lat[4] = {telemetry_string[131], telemetry_string[132], telemetry_string[133], telemetry_string[134]};
+	memcpy(&test_gps_latitude, &gps_lat, sizeof(test_gps_latitude));
+
+	// Comma-Space - telemetry_string[135:136]
+
+	// 4 bytes - telemetry_string[137:140]
+	float test_gps_longitude;
+	float gps_long[4] = {telemetry_string[137], telemetry_string[138], telemetry_string[139], telemetry_string[140]};
+	memcpy(&test_gps_longitude, &gps_long, sizeof(test_gps_longitude));
+
+	// Comma-Space - telemetry_string[141:142]
+
+	// 1 byte - telemetry_string[143]
+	uint8_t test_gps_sats = (uint8_t) telemetry_string[143];
+
+	// Comma-Space - telemetry_string[144:145]
+
+	// 10 bytes - telemetry_string [146:155]
+	char test_cmd[] = {telemetry_string[146], telemetry_string[147], telemetry_string[148], telemetry_string[149], telemetry_string[150],
+						telemetry_string[151], telemetry_string[152], telemetry_string[153], telemetry_string[154], telemetry_string[155]};
+
+
+	// Comparing to global.h
+	bool correct_values = (test_team_ID == global_mission_data.TEAM_ID) && // int16_t
+			(test_mission_time == global_mission_data.MISSION_TIME) &&
+			(test_packet_count == global_mission_data.PACKET_COUNT) &&
+			(test_mode == global_mission_data.MODE) &&
+			(test_state == global_mission_data.STATE) &&
+
+			(test_altitude == global_mission_data.ALTITUDE) &&
+			(test_temperature == global_mission_data.TEMPERATURE)&&
+			(test_pressure == global_mission_data.PRESSURE) &&
+			(test_voltage == global_mission_data.VOLTAGE) &&
+
+			(test_gyro_r == global_mission_data.GYRO_R) &&
+			(test_gyro_p == global_mission_data.GYRO_P) &&
+			(test_gyro_y == global_mission_data.GYRO_Y) &&
+
+			(test_accel_r == global_mission_data.ACCEL_R) &&
+			(test_accel_p == global_mission_data.ACCEL_P) &&
+			(test_accel_y == global_mission_data.ACCEL_Y) &&
+
+			(test_mag_r == global_mission_data.MAG_P)&&
+			(test_mag_p == global_mission_data.MAG_R) &&
+			(test_mag_y == global_mission_data.MAG_Y) &&
+
+			(test_gyro_rate == global_mission_data.AUTO_GYRO_ROTATION_RATE)&&
+
+			(test_gps_time == global_mission_data.GPA_TIME) &&
+			(test_gps_altitude == global_mission_data.GPA_ALTITUDE) &&
+			(test_gps_latitude == global_mission_data.GPA_LATITUDE) &&
+			(test_gps_longitude == global_mission_data.GPA_LONGITUDE) &&
+			(test_gps_sats == global_mission_data.GPA_SATS) &&
+
+			(test_cmd == global_mission_data.CMD_ECHO);
+
+	if (correct_values){
+		printf("All variables match.\n");
+	}
+	else{
+		printf("Something does not match.\n");
+		printf("String: %d, TEAM_ID: %d\n", test_team_ID, global_mission_data.TEAM_ID);
+		printf("String: %d, MISSION_TIME: %d\n", test_mission_time, global_mission_data.MISSION_TIME);
+		printf("String: %d, PACKET_COUNT: %d\n", test_packet_count, global_mission_data.PACKET_COUNT);
+		printf("String: %c, MODE: %c\n", test_mode, global_mission_data.MODE);
+		printf("String: %s, STATE: %s\n", test_state, global_mission_data.STATE);
+
+		printf("String: %s, ALITITUDE: %s\n", test_altitude, global_mission_data.ALTITUDE); // Not sure if float can be formated like this.
+		printf("String: %s, TEMPERATURE: %s\n", test_temperature, global_mission_data.TEMPERATURE);
+		printf("String: %s, PRESSURE: %s\n", test_pressure, global_mission_data.PRESSURE);
+		printf("String: %s, VOLTAGE: %s\n", test_voltage, global_mission_data.VOLTAGE);
+
+		printf("String: %s, GYRO_R: %s\n", test_gyro_r, global_mission_data.GYRO_R);
+		printf("String: %s, GYRO_P: %s\n", test_gyro_p, global_mission_data.GYRO_P);
+		printf("String: %s, GYRO_Y: %s\n", test_gyro_y, global_mission_data.GYRO_Y);
+
+		printf("String: %s, ACCEL_R: %s\n", test_accel_r, global_mission_data.ACCEL_R);
+		printf("String: %s, ACCEL_P: %s\n", test_accel_p, global_mission_data.ACCEL_P);
+		printf("String: %s, ACCEL_Y: %s\n", test_accel_y, global_mission_data.ACCEL_Y);
+
+		printf("String: %s, MAG_R: %s\n", test_mag_r, global_mission_data.MAG_P);
+		printf("String: %s, MAG_P: %s\n", test_mag_p, global_mission_data.MAG_R);
+		printf("String: %s, MAG_Y: %s\n", test_mag_y, global_mission_data.MAG_Y);
+
+		printf("String: %d, AUTO_GYRO_ROTATION_RATE: %d\n", test_gyro_rate, global_mission_data.AUTO_GYRO_ROTATION_RATE);
+
+		printf("String: %d, GPS_TIME: %d\n", test_gps_time, global_mission_data.GPS_TIME);
+		printf("String: %s, GPS_ALTITUDE: %s\n", test_gps_altitude, global_mission_data.GPS_ALTITUDE);
+		printf("String: %s, GPS_LATITUDE: %s\n", test_gps_latitude, global_mission_data.GPS_LATITUDE);
+		printf("String: %s, GPS_LONGTITUDE: %s\n", test_gps_longitude, global_mission_data.GPS_LONGITUDE);
+		printf("String: %d, GPS_SATS: %d\n", test_gps_sats, global_mission_data.GPS_SATS);
+
+		printf("String: %s, CMD_ECHO: %d\n", test_cmd, global_mission_data.CMD_ECHO);
+	}
+
+}
 /**
  * @brief Function implementing the Send_Telemetry thread.
  * @param argument: Not used
@@ -1433,7 +1679,7 @@ void SendTelemetry(void *argument)
     for (unsigned int k = 0; k < num_properties; k++)
     {
       // memcpy() transfers 'k' bytes of data from the struct to the string
-      memcpy(telemetry_string + index, data_pointer, property_sizes[k]);
+      memcpy(telemetry_string + s_index, data_pointer, property_sizes[k]);
 
       // move the data pointer and the string pointer separately (commas in the
       // resulting string mean the two positions are not always equal)
