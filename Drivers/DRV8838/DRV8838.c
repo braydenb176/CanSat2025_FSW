@@ -6,13 +6,14 @@
  */
 
 #include "DRV8838.h"
+#include <stm32g491xx.h>
 
 // If the pin/bank need to be changed this is where the change should be made
 //#define PH_GPIO_Port GPIOG 
 //#define PH_Pin GPIO_PIN_10 
 
 static TIM_HandleTypeDef *motor_pwm_htim;
-static GPIO_Typedef *PH_GPIO_Port;
+static GPIO_TypeDef *PH_GPIO_Port;
 static uint16_t PH_Pin;
 
 void drv8838_init(TIM_HandleTypeDef *htim, GPIO_TypeDef* ph_port, uint8_t ph_pin) {
@@ -34,9 +35,9 @@ void drv8838_set_speed(uint8_t duty_cycle, motor_direction_t dir) {
 
     // Set direction
     if (dir == MOTOR_FORWARD) {
-    	HAL_GPIO_WritePin(PH_GPIO_PORT, PH_Pin, GPIO_PIN_SET);
+    	HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_SET);
     } else {
-    	HAL_GPIO_WritePin(PH_GPIO_PORT, PH_Pin, GPIO_PIN_RESET);
+    	HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_RESET);
     }
 
     // Map 0–100 to CCR register (assumes 100% = ARR value)
@@ -46,4 +47,14 @@ void drv8838_set_speed(uint8_t duty_cycle, motor_direction_t dir) {
 
 void drv8838_brake(void) {
     __HAL_TIM_SET_COMPARE(motor_pwm_htim, TIM_CHANNEL_1, 0);
+}
+
+
+void nichrome_trigger() {
+    // Set the GPIO pin high to trigger the nichrome wire
+    HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_SET);
+    // Add a delay to keep the wire hot for a short time
+    HAL_Delay(100); // Adjust the delay as needed
+    // Set the GPIO pin low to turn off the nichrome wire
+    HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_RESET);
 }
