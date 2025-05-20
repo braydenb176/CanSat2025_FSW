@@ -20,4 +20,6 @@ void drv8838_init(TIM_HandleTypeDef *htim, GPIO_TypeDef* ph_port, uint8_t ph_pin
 void drv8838_set_speed(uint8_t duty_cycle, motor_direction_t dir);
 void drv8838_brake(void);
 
+void nichrome_trigger();
+
 #endif /* DRV8838_DRV8838_H_ */
