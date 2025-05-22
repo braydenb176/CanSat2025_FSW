@@ -15,17 +15,20 @@
 static TIM_HandleTypeDef *motor_pwm_htim;
 static GPIO_TypeDef *PH_GPIO_Port;
 static uint16_t PH_Pin;
+static uint16_t nSLEEP;
 
-void drv8838_init(TIM_HandleTypeDef *htim, GPIO_TypeDef* ph_port, uint8_t ph_pin) {
+void drv8838_init(TIM_HandleTypeDef *htim, GPIO_TypeDef* ph_port, uint16_t ph_pin, uint16_t sleep_pin) {
     motor_pwm_htim = htim;
     PH_GPIO_Port = ph_port; // This is the bank of the GPIO pins for the Phase pin
     PH_Pin = ph_pin; // This is the specific GPIO pin I want to use
+    nSLEEP = sleep_pin;
 
     // Start PWM on TIM3_CH1 (PA6)
     HAL_TIM_PWM_Start(motor_pwm_htim, TIM_CHANNEL_1);
 
     // Set PG10 as output (already done in MX_GPIO_Init, ideally)
     HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_RESET); // Default to REVERSE
+    HAL_GPIO_WritePin(GPIOG, nSLEEP, GPIO_PIN_SET); // Set the sleep pin high to wake up the driver
 }
 
 // duty_cycle is input as a percentage value, done hoping to make it easier to program for
@@ -45,12 +48,17 @@ void drv8838_set_speed(uint8_t duty_cycle, motor_direction_t dir) {
     __HAL_TIM_SET_COMPARE(motor_pwm_htim, TIM_CHANNEL_1, pulse);
 }
 
+void drv8838_coast(void) {
+    // Set the nSLEEP GPIO pin to a low state. According to the datasheet, this lets the motor coast..
+    HAL_GPIO_WritePin(GPIOG, nSLEEP, GPIO_PIN_RESET);
+}
+
 void drv8838_brake(void) {
     __HAL_TIM_SET_COMPARE(motor_pwm_htim, TIM_CHANNEL_1, 0);
 }
 
 
-void nichrome_trigger() {
+void nichrome_trigger(void) {
     // Set the GPIO pin high to trigger the nichrome wire
     HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_SET);
     // Add a delay to keep the wire hot for a short time
