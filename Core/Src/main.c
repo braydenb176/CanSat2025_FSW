@@ -1341,14 +1341,71 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_CameraControl */
 void CameraControl(void *argument)
 {
+  // CameraControl thread pseudocode (second draft)
+  // everything needs to be defined as duty cycles
+
+  drv8838_init();
+
+  // example: the motor should never be being actuated more than 90% of the time
+  uint8_t MAX_ROTATION_RATE = 90;
+
+  // initialize the motor to be stationary; speed does not account for direction
+  uint8_t current_speed = 0;
+  uint8_t easing_factor = 2; // defined as a percentage
+
   /* init code for USB_Device */
   MX_USB_Device_Init();
   /* USER CODE BEGIN 5 */
   init_mission_data();
   /* Infinite loop */
+
   for (;;)
   {
-    osDelay(1);
+    // rotation rate stored in global mission data struct
+    current_gyro_rotation_rate = global_mission_data.AUTO_GYRO_ROTATION_RATE;
+
+    /*
+    This code assumes that:
+        - the motor's 'forward' direction is the same as the auto-gyro's positive direction (i.e., if the auto gyro rotation rate > 0, actuating the motor in its forward mode would make them turn in the same direction and vice versa)
+        - conversely, the motor's 'reverse' direction is the same as the auto-gyro's negative direction
+    but this can easily be changed if necessary
+    */
+
+    // STAGE 1: Speed Adjustment
+    if (abs(current_gyro_rotation_rate) < current_speed)
+    {
+      current_speed -= easing_factor;
+      if (current_speed < 0)
+      {
+        current_speed = 0;
+      }
+    }
+    else if (abs(current_gyro_rotation_rate) > current_speed)
+    {
+      current_speed += easing_factor;
+      if (current_speed > MAX_ROTATION_RATE)
+      {
+        current_speed = MAX_ROTATION_RATE;
+      }
+    }
+
+    // STAGE 2: Motor Actuation, Braking
+    if (current_speed >= MAX_ROTATION_RATE)
+    {
+      // stop actuating the motor if the rotation speed limit has been exceeded to ensure safe operation
+      drv8838_brake();
+    }
+    else if (current_speed <= MAX_ROTATION_RATE)
+    {
+      if (current_gyro_rotation_rate <= 0)
+      {
+        drv8838_set_speed(current_speed, MOTOR_FORWARD);
+      }
+      else
+      {
+        drv8838_set_speed(current_speed, MOTOR_REVERSE);
+      }
+    }
   }
   /* USER CODE END 5 */
 }
