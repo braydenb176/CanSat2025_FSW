@@ -1344,7 +1344,7 @@ void CameraControl(void *argument)
   // CameraControl thread pseudocode (second draft)
   // everything needs to be defined as duty cycles
 
-  drv8838_init();
+  drv8838_init(DRV_PWM_Pin, DRV_DIR_GPIO_PORT, DRV_DIR_Pin);
 
   // example: the motor should never be being actuated more than 90% of the time
   uint8_t MAX_ROTATION_RATE = 90;
