@@ -21,6 +21,7 @@ Temperature - Celcius - double
 // https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
 // The altitude equation is for absolute altitude.
 // calibraing : 1 = True, 0 = False
+
 float caluclateAltitude(double pressure, int calibrating){
     float h_meter = 0.3048*((1 - pow((pressure/1013.25), 0.190284))*145366.54);
     if (calibrating == 1){

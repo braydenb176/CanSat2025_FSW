@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 ELF_SRCS := 
@@ -30,6 +30,7 @@ Drivers/BMM150 \
 Drivers/BQ28Z610 \
 Drivers/DRV8838 \
 Drivers/ICM42688P \
+Drivers/LC76G \
 Drivers/MS5607 \
 Drivers/STM32G4xx_HAL_Driver/Src \
 Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Src \

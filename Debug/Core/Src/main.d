@@ -52,7 +52,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../../Drivers/MS5607/MS5607SPI.h \
  ../Core/Src/../../Drivers/BMM150/BMM150SPI.h \
  ../Core/Src/../../Drivers/BMM150/bmm150.h \
- ../Core/Src/../../Drivers/BMM150/bmm150_def.h
+ ../Core/Src/../../Drivers/BMM150/bmm150_def.h \
+ ../Core/Src/../../Drivers/LC76G/LC76G.h
 ../Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
@@ -111,3 +112,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Src/../../Drivers/BMM150/BMM150SPI.h:
 ../Core/Src/../../Drivers/BMM150/bmm150.h:
 ../Core/Src/../../Drivers/BMM150/bmm150_def.h:
+../Core/Src/../../Drivers/LC76G/LC76G.h:

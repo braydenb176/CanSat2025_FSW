@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (13.3.rel1)
+# Toolchain: GNU Tools for STM32 (12.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -15,6 +15,7 @@ RM := rm -rf
 -include Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Src/subdir.mk
 -include Drivers/STM32G4xx_HAL_Driver/Src/subdir.mk
 -include Drivers/MS5607/subdir.mk
+-include Drivers/LC76G/subdir.mk
 -include Drivers/ICM42688P/subdir.mk
 -include Drivers/DRV8838/subdir.mk
 -include Drivers/BQ28Z610/subdir.mk
@@ -71,8 +72,8 @@ all: main-build
 main-build: CS25.elf secondary-outputs
 
 # Tool invocations
-CS25.elf CS25.map: $(OBJS) $(USER_OBJS) C:\Users\Tom\ Rice-Bladykas\Documents\CS25\CS25\STM32G491RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "CS25.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Tom Rice-Bladykas\Documents\CS25\CS25\STM32G491RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CS25.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
+CS25.elf CS25.map: $(OBJS) $(USER_OBJS) /Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/STM32G491RCTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "CS25.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/STM32G491RCTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="CS25.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
