@@ -1,5 +1,6 @@
-#include "MS5607SPI.c"
+#include "MS5607SPI.h"
 #include <math.h>
+#include <global.h>
 
 // Index is by seconds ago the value was calculated
 float altitude_history[] = {0, 0, 0};
@@ -30,22 +31,25 @@ float caluclateAltitude(double pressure, int calibrating){
     }
     else{
         // Relative Altitude
-        altitude_history[3] = altitude_history[2];
         altitude_history[2] = altitude_history[1];
+        altitude_history[1] = altitude_history[0];
         altitude_history[0] = h_meter - calibrated_atitude;
-        find_apogee();
         return altitude_history[0];
     }
 }
 
-void find_apogee(){
+void at_apogee(){
     if(altitude_history[2] > altitude_history[1] && altitude_history[2] > altitude_history[0]){
         if (max_altitude == 0){
             max_altitude = altitude_history[2];
             apogee_difference_ratio = alt_offset_height / max_altitude;
+            payload_state = APOGEE;
         }
         else if(max_altitude * (apogee_base_ratio + apogee_difference_ratio) > altitude_history[0]){
+            payload_state = PROBE_RELEASE;
             // DO ACTUATOR STUFF
+        } else {
+            payload_state = DESCENT;
         }
     }
 }
