@@ -29,6 +29,7 @@
 #include "../../Drivers/ICM42688P/ICM42688PSPI.h"
 #include "../../Drivers/MS5607/MS5607SPI.h"
 #include "../../Drivers/BMM150/BMM150SPI.h"
+#include "../../Drivers/LC76G/LC76G.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -181,6 +182,9 @@ int main(void)
   // Initialize BMM150
   struct bmm150_dev bmm150 = BMM150_spi_init(&hspi2, MAG_nCS_GPIO_Port, MAG_nCS_Pin);
 
+  // Initialize LC76G
+  LC76G_init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -188,11 +192,10 @@ int main(void)
   int i = 0;
   int strlen = 0;
 
-  MS5607Readings bmp_data;
-  ICM42688P_AccelData imu_data;
-  BMM150_mag_data mag_data;
-
-  uint8_t test = ICM42688P_read_reg(0x75);
+	MS5607Readings bmp_data;
+	ICM42688P_AccelData imu_data;
+	BMM150_mag_data mag_data;
+  LC76G_gps_data gps_data;
 
   init_mission_data();
   // printf("IMU is 0x%X! \n\r", test);
@@ -271,47 +274,6 @@ int main(void)
     HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
     HAL_Delay(100);
     HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
-
-    /**
-    strlen = printf("\n\rHi! %d\n\r", i++);
-
-    HAL_Delay(10);
-
-    bmp_data = MS5607ReadValues();
-    strlen = printf("Temperature = %.2f°C, Pressure = %.2fkPa \n\r",
-                    bmp_data.temperature_C,
-                    bmp_data.pressure_kPa);
-
-    HAL_Delay(10);
-
-    imu_data = ICM42688P_read_data();
-    strlen = printf("ACCEL(X = %d, Y = %d, Z = %d), GYRO(X = %d, Y = %d, Z = %d) \n\r",
-                    imu_data.accel_x,
-                    imu_data.accel_y,
-                    imu_data.accel_z,
-                    imu_data.gyro_x,
-                    imu_data.gyro_y,
-                    imu_data.gyro_z);
-
-    HAL_Delay(10);
-
-    // Not currently working
-    mag_data = BMM150_read_mag_data(&bmm150);
-    strlen = printf("MAG(X = %d, Y = %d, Z = %d) \n\r",
-          mag_data.x,
-          mag_data.y,
-          mag_data.z);
-
-    // Bullshit.
-    strlen = printf("Battery Voltage = %1.2fV \n\r", 7.62 + (0.0002 * (float)(uint8_t)rand()));
-
-    // Heartbeat
-    HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
-    HAL_Delay(100);
-    HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
-
-    HAL_Delay(1000);
-    **/
 
     /* USER CODE END WHILE */
 
