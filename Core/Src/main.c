@@ -29,6 +29,7 @@
 #include "../../Drivers/ICM42688P/ICM42688PSPI.h"
 #include "../../Drivers/MS5607/MS5607SPI.h"
 #include "../../Drivers/BMM150/BMM150SPI.h"
+#include "../../Drivers/LC76G/LC76G.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -180,6 +181,9 @@ int main(void)
 	// Initialize BMM150
 	struct bmm150_dev bmm150 = BMM150_spi_init(&hspi2, MAG_nCS_GPIO_Port, MAG_nCS_Pin);
 
+  // Initialize LC76G
+  LC76G_init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -190,6 +194,7 @@ int main(void)
 	MS5607Readings bmp_data;
 	ICM42688P_AccelData imu_data;
 	BMM150_mag_data mag_data;
+  LC76G_gps_data gps_data;
 
 	uint8_t test = ICM42688P_read_reg(0x75);
 	printf("IMU is 0x%X! \n\r", test);
@@ -218,6 +223,18 @@ int main(void)
 			imu_data.gyro_x,
 			imu_data.gyro_y,
 			imu_data.gyro_z);
+
+	HAL_Delay(10);
+
+  gps_data = LC76G_read_data();
+	strlen = printf("GPS: Time = %d:%d:%d, Lat = %f, Lon = %f, Alt = %f, num_sats = %d \n\r",
+			gps_data.time_H,
+      gps_data.time_M,
+      gps_data.time_S,
+      gps_data.lat,
+      gps_data.lon,
+      gps_data.altitude,
+      gps_data.num_sat_used);
 
 	HAL_Delay(10);
 
