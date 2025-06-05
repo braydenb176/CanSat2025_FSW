@@ -10,7 +10,7 @@
 #include "stm32g4xx_hal.h"
 
 #define CMD_VOLTAGE 0x08
-#define BQ28Z610_I2C_ADDR (0x55 << 1)
+#define BQ28Z610_I2C_ADDR 0x55
 
 HAL_StatusTypeDef BQ28Z610_ReadVoltage(I2C_HandleTypeDef *hi2c, uint16_t *voltage) {
 	uint8_t rx[2];
