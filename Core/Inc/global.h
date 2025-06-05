@@ -11,50 +11,51 @@
 #include "stm32g4xx_hal.h"
 #include "string.h"
 
-#define STATE_TEXT_LEN 14 //13 max, plus 1 for null char
+#define STATE_TEXT_LEN 14 // 13 max, plus 1 for null char
 #define CMD_ECHO_LEN 10
 
-//flags
+// flags
 
 extern volatile uint8_t transmit_enable;
 
-//structs
+// structs
 
-typedef struct {
-	int16_t  TEAM_ID;
-	uint32_t MISSION_TIME; //store as seconds since midnight, decode later
+typedef struct
+{
+	int16_t TEAM_ID;
+	char MISSION_TIME[9]; // store as seconds since midnight, decode later
 	uint32_t PACKET_COUNT;
-	char     MODE;
-	char     STATE[STATE_TEXT_LEN];
+	char MODE;
+	char STATE[STATE_TEXT_LEN];
 
-	float    ALTITUDE;
-	float    TEMPERATURE;
-	float    PRESSURE;
-	float 	 VOLTAGE; //might change to int, can multiply by 10 and store as int
+	float ALTITUDE;
+	float TEMPERATURE;
+	float PRESSURE;
+	float VOLTAGE; // might change to int, can multiply by 10 and store as int
 
-	float    GYRO_R;
-	float    GYRO_P;
-	float    GYRO_Y;
+	int16_t GYRO_R;
+	int16_t GYRO_P;
+	int16_t GYRO_Y;
 
-	float    ACCEL_R;
-	float    ACCEL_P;
-	float    ACCEL_Y;
+	int16_t ACCEL_R;
+	int16_t ACCEL_P;
+	int16_t ACCEL_Y;
 
-	float    MAG_R;
-	float    MAG_P;
-	float    MAG_Y;
+	float MAG_R;
+	float MAG_P;
+	float MAG_Y;
 
-	int16_t  AUTO_GYRO_ROTATION_RATE;
+	int16_t AUTO_GYRO_ROTATION_RATE;
 
-	uint32_t GPS_TIME;
-	float    GPS_ALTITUDE;
-	float    GPS_LATITUDE;
-	float    GPS_LONGITUDE;
-	uint8_t  GPS_SATS;
+	char GPS_TIME[9];
+	float GPS_ALTITUDE;
+	float GPS_LATITUDE;
+	float GPS_LONGITUDE;
+	uint8_t GPS_SATS;
 
-	char     CMD_ECHO[CMD_ECHO_LEN];
+	char CMD_ECHO[CMD_ECHO_LEN];
 
-	//might add more as needed (optional)
+	// might add more as needed (optional)
 } Mission_Data;
 
 extern Mission_Data global_mission_data;
