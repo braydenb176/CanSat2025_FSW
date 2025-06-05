@@ -1,6 +1,6 @@
-../Drivers/ICM42688P/ICM42688PSPI.c:11:13:ICM42688P_disable_chip_select	8	static
-../Drivers/ICM42688P/ICM42688PSPI.c:16:13:ICM42688P_enable_chip_select	8	static
-../Drivers/ICM42688P/ICM42688PSPI.c:21:26:ICM42688P_write_reg	24	static
-../Drivers/ICM42688P/ICM42688PSPI.c:30:9:ICM42688P_read_reg	24	static
-../Drivers/ICM42688P/ICM42688PSPI.c:42:9:ICM42688P_init	24	static
-../Drivers/ICM42688P/ICM42688PSPI.c:64:21:ICM42688P_read_data	56	static
+../Drivers/ICM42688P/ICM42688PSPI.c:12:13:ICM42688P_disable_chip_select	8	static
+../Drivers/ICM42688P/ICM42688PSPI.c:17:13:ICM42688P_enable_chip_select	8	static
+../Drivers/ICM42688P/ICM42688PSPI.c:22:26:ICM42688P_write_reg	24	static
+../Drivers/ICM42688P/ICM42688PSPI.c:31:9:ICM42688P_read_reg	24	static
+../Drivers/ICM42688P/ICM42688PSPI.c:43:9:ICM42688P_init	24	static
+../Drivers/ICM42688P/ICM42688PSPI.c:65:21:ICM42688P_read_data	56	static

@@ -192,9 +192,9 @@ int main(void)
   int i = 0;
   int strlen = 0;
 
-	MS5607Readings bmp_data;
-	ICM42688P_AccelData imu_data;
-	BMM150_mag_data mag_data;
+  MS5607Readings bmp_data;
+  ICM42688P_AccelData imu_data;
+  BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
   init_mission_data();
@@ -207,6 +207,7 @@ int main(void)
   {
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
+    gps_data = LC76G_read_data();
 
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
     global_mission_data.PRESSURE = bmp_data.pressure_kPa;
@@ -219,6 +220,15 @@ int main(void)
     global_mission_data.ACCEL_R = imu_data.accel_z;
     global_mission_data.ACCEL_P = imu_data.accel_x;
     global_mission_data.ACCEL_Y = imu_data.accel_y;
+
+    strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
+                     gps_data.time_H,
+                     gps_data.time_M,
+                     gps_data.time_S);
+    global_mission_data.GPS_ALTITUDE = gps_data.altitude;
+    global_mission_data.GPS_LATITUDE = gps_data.lat;
+    global_mission_data.GPS_LONGITUDE = gps_data.lon;
+    global_mission_data.GPS_SATS = gps_data.num_sat_used;
 
     uint8_t mission_data_length = sizeof(global_mission_data);
 
