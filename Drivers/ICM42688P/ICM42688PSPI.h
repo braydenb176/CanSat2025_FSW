@@ -16,17 +16,15 @@ typedef struct ICM42688P_AccelData
     uint16_t gyro_old_x;
     uint16_t gyro_old_y;
     uint16_t gyro_old_z;
-
     uint32_t new_time = 0;
     uint32_t old_time;
 
     uint16_t accel_x;
     uint16_t accel_y;
     uint16_t accel_z;
-
-    uint16_t gyro_x = 9999;
-    uint16_t gyro_y = 9999;
-    uint16_t gyro_z = 9999;
+    uint16_t gyro_x = 65,535;
+    uint16_t gyro_y = 65,535;
+    uint16_t gyro_z = 65,535;
 } ICM42688P_AccelData;
 
 uint8_t ICM42688P_read_reg(uint8_t reg);
