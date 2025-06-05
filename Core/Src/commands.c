@@ -105,13 +105,13 @@ static CMD_STATUS perform_ST(const char* incoming, char* cmd_ptr, Mission_Data* 
 	get_current_token(MAX_ST_SIZE, time, &cmd_ptr, mission_data);
 
 	if(!strcmp(time, "GPS")){
-		mission_data->MISSION_TIME = mission_data->GPS_TIME;
+		//mission_data->MISSION_TIME = mission_data->GPS_TIME;
 		return CMD_ST_GPS;
 	}else{
 	  //first verify if in right format (not null pointer, colons in right place, all digits)
 	  //then use macro, or helper func another file kinda needs to be made for that (including verifying above)
 	  if(verify_time_format(time)){
-		  mission_data->MISSION_TIME = (uint32_t) UTC_TO_INT(time);
+		  //mission_data->MISSION_TIME = (uint32_t) UTC_TO_INT(time);
 		  return CMD_ST_UTC;
 	  }else{
 		  return CMD_ST_INVLD;
