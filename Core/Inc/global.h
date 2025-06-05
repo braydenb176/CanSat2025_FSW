@@ -18,7 +18,10 @@
 
 extern volatile uint8_t transmit_enable;
 
-// structs
+typedef enum {LAUNCH_PAD, ASCENT, APOGEE, DESCENT, PROBE_RELEASE, LANDED} state;
+state payload_state = LAUNCH_PAD;
+
+//structs
 
 typedef struct
 {
