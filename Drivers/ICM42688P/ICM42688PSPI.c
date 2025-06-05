@@ -75,24 +75,25 @@ ICM42688P_AccelData ICM42688P_read_data()
 
     // 9999 is just a intialization number for the struct to check
     // to see if acceleration has been intialized at least once.
-    if (data.accel_new_x != 9999){
-        data.accel_old_x = data.accel_new_x;
-        data.accel_old_y = data.accel_new_y;
-        data.accel_old_z = data.accel_new_z;
+    if (data.gyro_x != 9999){
+        data.gyro_old_x = data.gyro_x;
+        data.gyro_old_y = data.gyro_y;
+        data.gyro_old_z = data.gyro_z;
         data.old_time = data.new_time
     }
-    data.accel_new_x = (buffer[0] << 8) | buffer[1];
-    data.accel_new_y = (buffer[2] << 8) | buffer[3];
-    data.accel_new_z = (buffer[4] << 8) | buffer[5];
+
+    /*data.accel_x = (buffer[0] << 8) | buffer[1];
+    data.accel_y = (buffer[2] << 8) | buffer[3];
+    data.accel_z = ((buffer[4] << 8) | buffer[5])*-1;*/
     data.new_time = HAL_GetTick();
 
-    data.accel_x = (data.accel_new_x - data.accel_old_x) / (data.new_time - data.old_time);
-    data.accel_y = (data.accel_new_y - data.accel_old_y) / (data.new_time - data.old_time);
-    data.accel_z = (data.accel_new_x - data.accel_old_z) / (data.new_time - data.old_time);
+    data.accel_x = (data.gyro_x - data.gyro_old_x) / (data.new_time - data.old_time);
+    data.accel_y = (data.gyro_y - data.gyro_old_y) / (data.new_time - data.old_time);
+    data.accel_z = (data.gyro_z - data.gyro_old_z) / (data.new_time - data.old_time);
 
     data.gyro_x = (buffer[6] << 8) | buffer[7];
     data.gyro_y = (buffer[8] << 8) | buffer[9];
-    data.gyro_z = (buffer[10] << 8) | buffer[11];
+    data.gyro_z = (buffer[10] << 8) | buffer[11]*-1;
 
     return data;
 }
