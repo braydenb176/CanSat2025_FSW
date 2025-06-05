@@ -1,3 +1,4 @@
+/*
 #include <stdint.h>
 #include "ICM42688PSPI.h"
 
@@ -23,4 +24,4 @@ uint16_t Get_Accel_Y(uint16_t gyro_y, uint32_t time){
 
 uint16_t Get_Accel_Z(uint16_t gyro_z, uint32_t time){
     return (gyro_old_z - gyro_z) / (old_time - time);
-}
+}*/

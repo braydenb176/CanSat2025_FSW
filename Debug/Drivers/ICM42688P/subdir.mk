@@ -5,12 +5,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Drivers/ICM42688P/AccelerationCalculations.c \
 ../Drivers/ICM42688P/ICM42688PSPI.c 
 
 OBJS += \
+./Drivers/ICM42688P/AccelerationCalculations.o \
 ./Drivers/ICM42688P/ICM42688PSPI.o 
 
 C_DEPS += \
+./Drivers/ICM42688P/AccelerationCalculations.d \
 ./Drivers/ICM42688P/ICM42688PSPI.d 
 
 
@@ -21,7 +24,7 @@ Drivers/ICM42688P/%.o Drivers/ICM42688P/%.su Drivers/ICM42688P/%.cyclo: ../Drive
 clean: clean-Drivers-2f-ICM42688P
 
 clean-Drivers-2f-ICM42688P:
-	-$(RM) ./Drivers/ICM42688P/ICM42688PSPI.cyclo ./Drivers/ICM42688P/ICM42688PSPI.d ./Drivers/ICM42688P/ICM42688PSPI.o ./Drivers/ICM42688P/ICM42688PSPI.su
+	-$(RM) ./Drivers/ICM42688P/AccelerationCalculations.cyclo ./Drivers/ICM42688P/AccelerationCalculations.d ./Drivers/ICM42688P/AccelerationCalculations.o ./Drivers/ICM42688P/AccelerationCalculations.su ./Drivers/ICM42688P/ICM42688PSPI.cyclo ./Drivers/ICM42688P/ICM42688PSPI.d ./Drivers/ICM42688P/ICM42688PSPI.o ./Drivers/ICM42688P/ICM42688PSPI.su
 
 .PHONY: clean-Drivers-2f-ICM42688P
 

@@ -5,26 +5,23 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/MS5607/AltitudeCalulcations.c \
-../Drivers/MS5607/MS5607SPI.c 
+../Drivers/LC76G/LC76G.c 
 
 OBJS += \
-./Drivers/MS5607/AltitudeCalulcations.o \
-./Drivers/MS5607/MS5607SPI.o 
+./Drivers/LC76G/LC76G.o 
 
 C_DEPS += \
-./Drivers/MS5607/AltitudeCalulcations.d \
-./Drivers/MS5607/MS5607SPI.d 
+./Drivers/LC76G/LC76G.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Drivers/MS5607/%.o Drivers/MS5607/%.su Drivers/MS5607/%.cyclo: ../Drivers/MS5607/%.c Drivers/MS5607/subdir.mk
+Drivers/LC76G/%.o Drivers/LC76G/%.su Drivers/LC76G/%.cyclo: ../Drivers/LC76G/%.c Drivers/LC76G/subdir.mk
 	arm-none-eabi-gcc "$<" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32G491xx -DSTM32_THREAD_SAFE_STRATEGY=2 -c -I../USB_Device/App -I../USB_Device/Target -I../Core/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc -I../Drivers/STM32G4xx_HAL_Driver/Inc/Legacy -I../Middlewares/ST/STM32_USB_Device_Library/Core/Inc -I../Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Inc -I../Drivers/CMSIS/Device/ST/STM32G4xx/Include -I../Drivers/CMSIS/Include -I../Core/ThreadSafe -I"/Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/Drivers" -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"$(@:%.o=%.d)" -MT"$@" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "$@"
 
-clean: clean-Drivers-2f-MS5607
+clean: clean-Drivers-2f-LC76G
 
-clean-Drivers-2f-MS5607:
-	-$(RM) ./Drivers/MS5607/AltitudeCalulcations.cyclo ./Drivers/MS5607/AltitudeCalulcations.d ./Drivers/MS5607/AltitudeCalulcations.o ./Drivers/MS5607/AltitudeCalulcations.su ./Drivers/MS5607/MS5607SPI.cyclo ./Drivers/MS5607/MS5607SPI.d ./Drivers/MS5607/MS5607SPI.o ./Drivers/MS5607/MS5607SPI.su
+clean-Drivers-2f-LC76G:
+	-$(RM) ./Drivers/LC76G/LC76G.cyclo ./Drivers/LC76G/LC76G.d ./Drivers/LC76G/LC76G.o ./Drivers/LC76G/LC76G.su
 
-.PHONY: clean-Drivers-2f-MS5607
+.PHONY: clean-Drivers-2f-LC76G
 

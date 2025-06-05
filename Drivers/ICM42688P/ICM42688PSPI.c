@@ -74,12 +74,12 @@ ICM42688P_AccelData ICM42688P_read_data()
     HAL_SPI_Receive(hspi, buffer, sizeof(buffer) / sizeof(buffer[0]), HAL_MAX_DELAY);
     ICM42688P_enable_chip_select();
 
-    /*data.accel_x = (buffer[0] << 8) | buffer[1];
+    data.accel_x = (buffer[0] << 8) | buffer[1];
     data.accel_y = (buffer[2] << 8) | buffer[3];
-    data.accel_z = ((buffer[4] << 8) | buffer[5])*-1;*/
+    data.accel_z = ((buffer[4] << 8) | buffer[5])*-1;
 
     // Get new information.
-    uint32_t time = HAL_GetTick();
+    /*uint32_t time = HAL_GetTick();
     data.gyro_x = (buffer[6] << 8) | buffer[7];
     data.gyro_y = (buffer[8] << 8) | buffer[9];
     data.gyro_z = ((buffer[10] << 8) | buffer[11])*-1;
@@ -89,7 +89,7 @@ ICM42688P_AccelData ICM42688P_read_data()
     data.accel_y = Get_Accel_Y(data.gyro_y, time);
     data.accel_z = Get_Accel_Z(data.gyro_z, time);
 
-    Transfer_Data(data.gyro_x, data.gyro_y, data.gyro_z, time);
+    Transfer_Data(data.gyro_x, data.gyro_y, data.gyro_z, time);*/
 
     return data;
 }

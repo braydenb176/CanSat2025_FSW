@@ -15,6 +15,7 @@ RM := rm -rf
 -include Middlewares/ST/STM32_USB_Device_Library/Class/DFU/Src/subdir.mk
 -include Drivers/STM32G4xx_HAL_Driver/Src/subdir.mk
 -include Drivers/MS5607/subdir.mk
+-include Drivers/LC76G/subdir.mk
 -include Drivers/ICM42688P/subdir.mk
 -include Drivers/DRV8838/subdir.mk
 -include Drivers/BQ28Z610/subdir.mk
