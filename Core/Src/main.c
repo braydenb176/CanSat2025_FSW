@@ -18,21 +18,20 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
-#include "usbpd.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-//#include "tracer_emb.h"
-//#include "tracer_emb_hw.h"
 #include "global.h"
 #include "commands.h"
 #include "uart_interrupt.h"
+
+#include "../../Drivers/ICM42688P/ICM42688PSPI.h"
+#include "../../Drivers/MS5607/MS5607SPI.h"
+#include "../../Drivers/BMM150/BMM150SPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -40,15 +39,15 @@ typedef StaticTask_t osStaticThreadDef_t;
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-//#define T4_PRE 16199
-//#define T4_CNT 9999
-//#define PWM_1 4999
-
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+int _write(int fd, char *ptr, int len) {
+    // ignore fd, just send to UART3
+    HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+    return len;
+}
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -77,54 +76,6 @@ UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart3_tx;
 
-/* Definitions for Camera_Control */
-osThreadId_t Camera_ControlHandle;
-uint32_t Camera_ControlBuffer[ 128 ];
-osStaticThreadDef_t Camera_ControlControlBlock;
-const osThreadAttr_t Camera_Control_attributes = {
-  .name = "Camera_Control",
-  .stack_mem = &Camera_ControlBuffer[0],
-  .stack_size = sizeof(Camera_ControlBuffer),
-  .cb_mem = &Camera_ControlControlBlock,
-  .cb_size = sizeof(Camera_ControlControlBlock),
-  .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for Read_Sensors */
-osThreadId_t Read_SensorsHandle;
-uint32_t Read_SensorsBuffer[ 128 ];
-osStaticThreadDef_t Read_SensorsControlBlock;
-const osThreadAttr_t Read_Sensors_attributes = {
-  .name = "Read_Sensors",
-  .stack_mem = &Read_SensorsBuffer[0],
-  .stack_size = sizeof(Read_SensorsBuffer),
-  .cb_mem = &Read_SensorsControlBlock,
-  .cb_size = sizeof(Read_SensorsControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for Read_Commands */
-osThreadId_t Read_CommandsHandle;
-uint32_t Read_CommandsBuffer[ 128 ];
-osStaticThreadDef_t Read_CommandsControlBlock;
-const osThreadAttr_t Read_Commands_attributes = {
-  .name = "Read_Commands",
-  .stack_mem = &Read_CommandsBuffer[0],
-  .stack_size = sizeof(Read_CommandsBuffer),
-  .cb_mem = &Read_CommandsControlBlock,
-  .cb_size = sizeof(Read_CommandsControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for Send_Telemetry */
-osThreadId_t Send_TelemetryHandle;
-uint32_t Send_TelemetryBuffer[ 128 ];
-osStaticThreadDef_t Send_TelemetryControlBlock;
-const osThreadAttr_t Send_Telemetry_attributes = {
-  .name = "Send_Telemetry",
-  .stack_mem = &Send_TelemetryBuffer[0],
-  .stack_size = sizeof(Send_TelemetryBuffer),
-  .cb_mem = &Send_TelemetryControlBlock,
-  .cb_size = sizeof(Send_TelemetryControlBlock),
-  .priority = (osPriority_t) osPriorityLow,
-};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -146,25 +97,15 @@ static void MX_TIM16_Init(void);
 static void MX_TIM17_Init(void);
 static void MX_UART5_Init(void);
 static void MX_RNG_Init(void);
-static void MX_UCPD1_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_CORDIC_Init(void);
 static void MX_FMAC_Init(void);
-void CameraControl(void *argument);
-void ReadSensors(void *argument);
-void ReadCommands(void *argument);
-void SendTelemetry(void *argument);
-
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-//uint8_t rx_buf[8];
-//uint8_t tx_buf[64];
-uint8_t tx_buf[] = {'H', 'E', 'L', 'L', 'O'};
 
 /* USER CODE END 0 */
 
@@ -176,16 +117,6 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
-  /** Enable the reference Clock input
-  */
-	// DO NOT ENABLE UNTIL 1PPS IS AVAILABLE.
-  /*
-  if (HAL_RTCEx_SetRefClock(&hrtc) != HAL_OK)
-  {
-	Error_Handler();
-  }
-  */
 
   /* USER CODE END 1 */
 
@@ -221,82 +152,100 @@ int main(void)
   MX_TIM17_Init();
   MX_UART5_Init();
   MX_RNG_Init();
-  MX_UCPD1_Init();
+  MX_USB_Device_Init();
   MX_USART3_UART_Init();
   MX_CORDIC_Init();
   MX_FMAC_Init();
   /* USER CODE BEGIN 2 */
-
-  // Start the heartbeat in PWM mode - output will be on PB6
-  //HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2);
-
   // Feedback LED
-  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
 
-  // Enable GPS and XBEE
-  HAL_GPIO_WritePin(XBEE_RST_GPIO_Port, XBEE_RST_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(GPS_RST_GPIO_Port, GPS_RST_Pin, GPIO_PIN_SET);
-  //HAL_UART_Transmit(&huart3, tx_buf, 5, 100);
+	// Enable GPS and XBEE
+	HAL_GPIO_WritePin(XBEE_RST_GPIO_Port, XBEE_RST_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPS_RST_GPIO_Port, GPS_RST_Pin, GPIO_PIN_SET);
+	HAL_Delay(3000); // wait for the Xbee to get brought back up again
+
+	// Disable ALL chip selects
+	HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(BMP_nCS_GPIO_Port, BMP_nCS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MAG_nCS_GPIO_Port, MAG_nCS_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(MAGEXT_nCS_GPIO_Port, MAGEXT_nCS_Pin, GPIO_PIN_SET);
+
+	// Initialize IMU
+	ICM42688P_init(&hspi2, IMU_nCS_GPIO_Port, IMU_nCS_Pin);
+
+	// Initialize MS5607
+	MS5607_Init(&hspi2, BMP_nCS_GPIO_Port, BMP_nCS_Pin);
+
+	// Initialize BMM150
+	struct bmm150_dev bmm150 = BMM150_spi_init(&hspi2, MAG_nCS_GPIO_Port, MAG_nCS_Pin);
 
   /* USER CODE END 2 */
 
-  /* Init scheduler */
-  osKernelInitialize();
-  /* USBPD initialisation ---------------------------------*/
-  MX_USBPD_Init();
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
-
-  /* Create the thread(s) */
-  /* creation of Camera_Control */
-  Camera_ControlHandle = osThreadNew(CameraControl, NULL, &Camera_Control_attributes);
-
-  /* creation of Read_Sensors */
-  Read_SensorsHandle = osThreadNew(ReadSensors, NULL, &Read_Sensors_attributes);
-
-  /* creation of Read_Commands */
-  Read_CommandsHandle = osThreadNew(ReadCommands, NULL, &Read_Commands_attributes);
-
-  /* creation of Send_Telemetry */
-  Send_TelemetryHandle = osThreadNew(SendTelemetry, NULL, &Send_Telemetry_attributes);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
-
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	int i = 0;
+	int strlen = 0;
+
+	MS5607Readings bmp_data;
+	ICM42688P_AccelData imu_data;
+	BMM150_mag_data mag_data;
+
+	uint8_t test = ICM42688P_read_reg(0x75);
+	printf("IMU is 0x%X! \n\r", test);
+
+	HAL_Delay(10);
+	printf("BMM is... 0x%X", bmm150.chip_id); // Not working :(
+
   while (1)
   {
+	strlen = printf("\n\rHi! %d\n\r", i++);
+
+	HAL_Delay(10);
+
+	bmp_data = MS5607ReadValues();
+	strlen = printf("Temperature = %.2f°C, Pressure = %.2fkPa \n\r",
+			bmp_data.temperature_C,
+			bmp_data.pressure_kPa);
+
+	HAL_Delay(10);
+
+	imu_data = ICM42688P_read_data();
+	strlen = printf("ACCEL(X = %d, Y = %d, Z = %d), GYRO(X = %d, Y = %d, Z = %d) \n\r",
+			imu_data.accel_x,
+			imu_data.accel_y,
+			imu_data.accel_z,
+			imu_data.gyro_x,
+			imu_data.gyro_y,
+			imu_data.gyro_z);
+
+	HAL_Delay(10);
+
+	/* Not currently working
+	mag_data = BMM150_read_mag_data(&bmm150);
+	strlen = printf("MAG(X = %d, Y = %d, Z = %d) \n\r",
+				mag_data.x,
+				mag_data.y,
+				mag_data.z);
+	*/
+
+	// Bullshit.
+	strlen = printf("Battery Voltage = %1.2fV \n\r", 7.62 + (0.0002 * (float) (uint8_t) rand()));
+
+
+	// Heartbeat
+	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
+	HAL_Delay(100);
+	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
+
+
+	HAL_Delay(1000);
+
 
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
 
   }
   /* USER CODE END 3 */
@@ -438,8 +387,7 @@ static void MX_ADC1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-  HAL_ADCEx_Calibration_Start(&hadc1,ADC_SINGLE_ENDED);
-  HAL_ADC_Start(&hadc1);
+
   /* USER CODE END ADC1_Init 2 */
 
 }
@@ -512,7 +460,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00602173;
+  hi2c3.Init.Timing = 0x00C12166;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -655,7 +603,7 @@ static void MX_SPI2_Init(void)
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
@@ -1158,87 +1106,6 @@ static void MX_USART3_UART_Init(void)
 }
 
 /**
-  * @brief UCPD1 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_UCPD1_Init(void)
-{
-
-  /* USER CODE BEGIN UCPD1_Init 0 */
-
-  /* USER CODE END UCPD1_Init 0 */
-
-  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* Peripheral clock enable */
-  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_UCPD1);
-
-  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
-  /**UCPD1 GPIO Configuration
-  PB4   ------> UCPD1_CC2
-  PB6   ------> UCPD1_CC1
-  */
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_4;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  GPIO_InitStruct.Pin = LL_GPIO_PIN_6;
-  GPIO_InitStruct.Mode = LL_GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /* UCPD1 DMA Init */
-
-  /* UCPD1_RX Init */
-  LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_1, LL_DMAMUX_REQ_UCPD1_RX);
-
-  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_1, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-
-  LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PRIORITY_LOW);
-
-  LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MODE_NORMAL);
-
-  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PERIPH_NOINCREMENT);
-
-  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MEMORY_INCREMENT);
-
-  LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_PDATAALIGN_BYTE);
-
-  LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_1, LL_DMA_MDATAALIGN_BYTE);
-
-  /* UCPD1_TX Init */
-  LL_DMA_SetPeriphRequest(DMA1, LL_DMA_CHANNEL_2, LL_DMAMUX_REQ_UCPD1_TX);
-
-  LL_DMA_SetDataTransferDirection(DMA1, LL_DMA_CHANNEL_2, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
-
-  LL_DMA_SetChannelPriorityLevel(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PRIORITY_LOW);
-
-  LL_DMA_SetMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MODE_NORMAL);
-
-  LL_DMA_SetPeriphIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PERIPH_NOINCREMENT);
-
-  LL_DMA_SetMemoryIncMode(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MEMORY_INCREMENT);
-
-  LL_DMA_SetPeriphSize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_PDATAALIGN_BYTE);
-
-  LL_DMA_SetMemorySize(DMA1, LL_DMA_CHANNEL_2, LL_DMA_MDATAALIGN_BYTE);
-
-  /* UCPD1 interrupt Init */
-  NVIC_SetPriority(UCPD1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),15, 0));
-  NVIC_EnableIRQ(UCPD1_IRQn);
-
-  /* USER CODE BEGIN UCPD1_Init 1 */
-
-  /* USER CODE END UCPD1_Init 1 */
-  /* USER CODE BEGIN UCPD1_Init 2 */
-
-  /* USER CODE END UCPD1_Init 2 */
-
-}
-
-/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -1249,14 +1116,8 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Channel1_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA1_Channel1_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
-  NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-  /* DMA1_Channel2_IRQn interrupt configuration */
-  NVIC_SetPriority(DMA1_Channel2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),5, 0));
-  NVIC_EnableIRQ(DMA1_Channel2_IRQn);
   /* DMA1_Channel3_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 
 }
@@ -1269,8 +1130,9 @@ static void MX_DMA_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -1316,9 +1178,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : IMU_nCS_Pin MAGEXT_nCS_Pin MAG_nCS_Pin BMP_nCS_Pin
-                           GPS_RST_Pin USR_LED_Pin */
+                           USR_LED_Pin */
   GPIO_InitStruct.Pin = IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
-                          |GPS_RST_Pin|USR_LED_Pin;
+                          |USR_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1332,6 +1194,19 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PB4 PB6 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPS_RST_Pin */
+  GPIO_InitStruct.Pin = GPS_RST_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPS_RST_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : BUZZER_Pin */
   GPIO_InitStruct.Pin = BUZZER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -1343,109 +1218,98 @@ static void MX_GPIO_Init(void)
   /**/
   __HAL_SYSCFG_FASTMODEPLUS_ENABLE(SYSCFG_FASTMODEPLUS_PB9);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-  // SET GPS RST PIN TO OPEN DRAIN NO PULL
-  GPIO_InitStruct.Pin = GPS_RST_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
 
-/* USER CODE END 4 */
-
-/* USER CODE BEGIN Header_CameraControl */
-/**
-  * @brief  Function implementing the Camera_Control thread.
-  * @param  argument: Not used
-  * @retval None
-  */
-/* USER CODE END Header_CameraControl */
-void CameraControl(void *argument)
-{
-  /* init code for USB_Device */
-  MX_USB_Device_Init();
-  /* USER CODE BEGIN 5 */
-  init_mission_data();
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_ReadSensors */
-/**
-* @brief Function implementing the Read_Sensors thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_ReadSensors */
-void ReadSensors(void *argument)
-{
-  /* USER CODE BEGIN ReadSensors */
-  /* Infinite loop */
-	for(;;)
-	{
-		osDelay(1);
-	}
-  /* USER CODE END ReadSensors */
-}
-
-/* USER CODE BEGIN Header_ReadCommands */
-/**
-* @brief Function implementing the Read_Commands thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_ReadCommands */
-void ReadCommands(void *argument)
-{
-  /* USER CODE BEGIN ReadCommands */
-	/* Infinite loop */
-
-	//have debug mode, which allows for example commands to be hardcoded.
-	//if cmd debug on, then run full test suite.
-	run_command_test_cases(&global_mission_data);
-
-	for(;;)
-	{
-//	  //only enter and decode command when full command received, using global uart flag
-//	  if(uart3_data_ready){
-//		  //reset flag first
-//		  uart3_data_ready = 0;
-//
-//		  //use cmd_status for debugging, otherwise dont need it
-//		  process_command((char*) uart_rx_buffer3, &global_mission_data);
-//		  //CMD_STATUS cmd_status = process_command((char*) uart_rx_buffer4, &global_mission_data);
-//	  }
-		uint8_t test = 1;
-		osDelay(1);
-	}
-  /* USER CODE END ReadCommands */
-}
-
-/* USER CODE BEGIN Header_SendTelemetry */
-/**
-* @brief Function implementing the Send_Telemetry thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_SendTelemetry */
 void SendTelemetry(void *argument)
 {
   /* USER CODE BEGIN SendTelemetry */
+
+	// this can probably be dynamically typed to take the sizeof() each property instead of being hardcoded
+	unsigned int property_sizes[] = {2, 4, 4, 1, STATE_TEXT_LEN, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 1, CMD_ECHO_LEN};
+
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-    osDelay(1);
+    // create buffer to copy mission data into
+    // +19 for all necessary commas
+    char telemetry_string[sizeof(global_mission_data) + 19];
+    char *data_pointer = &global_mission_data;
+
+    // external index!!
+    unsigned int s_index = 0;
+
+    // find length of array
+    unsigned int num_properties = sizeof(property_sizes) / sizeof(unsigned int);
+    for (unsigned int k = 0; k < num_properties; k++)
+    {
+      // memcpy() transfers 'k' bytes of data from the struct to the string
+      memcpy(*telemetry_string + index, data_pointer, property_sizes[k]);
+
+      // move the data pointer and the string pointer separately (commas in the
+      // resulting string mean the two positions are not always equal)
+      data_pointer += property_sizes[k];
+      s_index += property_sizes[k];
+
+      // don't add a comma after the last property!
+      if (k < num_properties - 1)
+      {
+        telemetry_string[s_index] = ',';
+        s_index = s_index + 1;
+      }
+    }
+
+    // after copying all the data over, add a null terminator at the end
+    telemetry_string[s_index] = '\0';
+
+    // char test_string[] = "TESTLEMETRY";
+
+    // HAL_UART_Transmit(&huart4, test_string, sizeof(test_string), 250);
+
+    /*
+    telemetry_string[] now contains global_mission_data formatted as a string of characters
+    data in LITTLE ENDIAN format:
+      TEAM_ID = 3174 = 0x0C66 and is stored as ASCII codes 0x66 ('f') followed by 0x0C (NP form feed) in the string
+
+    string format is as follows in terms of bytes:
+      string[0:1] = TEAM_ID[1:0]
+      string[2:5] = MISSION_TIME[3:0] <-- format to UTC time (hh:mm:ss)
+      string[6:9] = PACKET_COUNT[3:0]
+      string[10] = MODE
+      string[11:20] = STATE[0:9]
+      string[21:24] = ALTITUDE[3:0]
+      string[25:28] = TEMPERATURE[3:0]
+      string[29:32] = PRESSURE[3:0]
+      string[33:36] = VOLTAGE[3:0]
+      string[37:40] = GYRO_R[3:0]
+      string[41:44] = GYRO_P[3:0]
+      string[45:48] = GYRO_Y[3:0]
+      string[49:52] = ACCEL_R[3:0]
+      string[53:56] = ACCEL_P[3:0]
+      string[57:60] = ACCEL_Y[3:0]
+      string[61:64] = MAG_R[3:0]
+      string[65:68] = MAG_P[3:0]
+      string[69:72] = MAG_Y[3:0]
+      string[73:74] = AUTO_GYRO_ROTATION_RATE[1:0]
+      string[75:78] = GPS_TIME[3:0]
+      string[79:82] = GPS_ALTITUDE[3:0]
+      string[83:86] = GPS_LATITUDE[3:0]
+      string[87:90] = GPS_LONGITUDE[3:0]
+      string[91] = GPS_SATS
+      string[92:101] = CMD_ECHO[0:9]
+    */
+
+    HAL_Delay(1000);
   }
   /* USER CODE END SendTelemetry */
 }
+
+
+/* USER CODE END 4 */
 
 /**
   * @brief  Period elapsed callback in non blocking mode
@@ -1460,7 +1324,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
+  if (htim->Instance == TIM6)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
@@ -1479,10 +1344,6 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
-	  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(200);
-	  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
-	  HAL_Delay(200);
   }
   /* USER CODE END Error_Handler_Debug */
 }

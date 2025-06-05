@@ -1,0 +1,4 @@
+../Drivers/AMT10E2/AMT10E2.c:8:6:QENC_Init_Encoder0	48	static
+../Drivers/AMT10E2/AMT10E2.c:33:6:QENC_Init_Encoder1	48	static
+../Drivers/AMT10E2/AMT10E2.c:57:9:QENC_Get_Encoder0_Count	4	static
+../Drivers/AMT10E2/AMT10E2.c:62:9:QENC_Get_Encoder1_Count	4	static

@@ -13,7 +13,7 @@
   * in the root directory of this software component.
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
- ******************************************************************************
+  ******************************************************************************
   */
 /* USER CODE END Header */
 
@@ -22,7 +22,7 @@
 #define __STM32G4xx_IT_H
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 /* Private includes ----------------------------------------------------------*/
@@ -51,14 +51,14 @@ void HardFault_Handler(void);
 void MemManage_Handler(void);
 void BusFault_Handler(void);
 void UsageFault_Handler(void);
+void SVC_Handler(void);
 void DebugMon_Handler(void);
-void DMA1_Channel1_IRQHandler(void);
-void DMA1_Channel2_IRQHandler(void);
+void PendSV_Handler(void);
+void SysTick_Handler(void);
 void DMA1_Channel3_IRQHandler(void);
 void USB_LP_IRQHandler(void);
 void USART3_IRQHandler(void);
 void TIM6_DAC_IRQHandler(void);
-void UCPD1_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */

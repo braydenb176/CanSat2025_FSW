@@ -1,0 +1,3 @@
+../Drivers/DRV8838/DRV8838.c:18:6:drv8838_init	24	static
+../Drivers/DRV8838/DRV8838.c:31:6:drv8838_set_speed	24	static
+../Drivers/DRV8838/DRV8838.c:47:6:drv8838_brake	4	static
