@@ -212,7 +212,7 @@ int main(void)
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
     global_mission_data.PRESSURE = bmp_data.pressure_kPa;
     global_mission_data.VOLTAGE = (7.62 + (0.0002 * (float)(uint8_t)rand()));
-    global_mission_data.GYRO_R = -imu_data.gyro_z * 2000;
+    global_mission_data.GYRO_R = imu_data.gyro_z * 2000;
     global_mission_data.GYRO_P = imu_data.gyro_x * 2000;
     global_mission_data.GYRO_Y = imu_data.gyro_y * 2000;
 
@@ -229,17 +229,6 @@ int main(void)
     global_mission_data.GPS_LATITUDE = gps_data.lat;
     global_mission_data.GPS_LONGITUDE = gps_data.lon;
     global_mission_data.GPS_SATS = gps_data.num_sat_used;
-
-    uint8_t mission_data_length = sizeof(global_mission_data);
-
-    // checksum
-    uint8_t bytesum = 0;
-    unsigned char *mission_data = (unsigned char *)&global_mission_data;
-    for (unsigned int i = 0; i < sizeof(global_mission_data); i++)
-    {
-      bytesum += mission_data[i];
-    }
-    uint8_t checksum = 0xFF - bytesum;
 
     // model packet
     char telemetry_string[200];
@@ -259,7 +248,7 @@ int main(void)
                      // gyro_y
     );
     // strlen = sizeof(telemetry_string);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
     memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
     strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
                      global_mission_data.ACCEL_R, // accel_r
@@ -275,7 +264,7 @@ int main(void)
                      global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
                      global_mission_data.GPS_SATS,                // temp; # of gps satellites
                      global_mission_data.CMD_ECHO);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
 
     global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
 

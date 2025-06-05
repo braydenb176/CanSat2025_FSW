@@ -5,15 +5,18 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Drivers/MS5607/AltitudeCalulcations.c \
+../Drivers/MS5607/AltitudeCalculations.c \
+../Drivers/MS5607/AltitudeCalculationsAccel.c \
 ../Drivers/MS5607/MS5607SPI.c 
 
 OBJS += \
-./Drivers/MS5607/AltitudeCalulcations.o \
+./Drivers/MS5607/AltitudeCalculations.o \
+./Drivers/MS5607/AltitudeCalculationsAccel.o \
 ./Drivers/MS5607/MS5607SPI.o 
 
 C_DEPS += \
-./Drivers/MS5607/AltitudeCalulcations.d \
+./Drivers/MS5607/AltitudeCalculations.d \
+./Drivers/MS5607/AltitudeCalculationsAccel.d \
 ./Drivers/MS5607/MS5607SPI.d 
 
 
@@ -24,7 +27,7 @@ Drivers/MS5607/%.o Drivers/MS5607/%.su Drivers/MS5607/%.cyclo: ../Drivers/MS5607
 clean: clean-Drivers-2f-MS5607
 
 clean-Drivers-2f-MS5607:
-	-$(RM) ./Drivers/MS5607/AltitudeCalulcations.cyclo ./Drivers/MS5607/AltitudeCalulcations.d ./Drivers/MS5607/AltitudeCalulcations.o ./Drivers/MS5607/AltitudeCalulcations.su ./Drivers/MS5607/MS5607SPI.cyclo ./Drivers/MS5607/MS5607SPI.d ./Drivers/MS5607/MS5607SPI.o ./Drivers/MS5607/MS5607SPI.su
+	-$(RM) ./Drivers/MS5607/AltitudeCalculations.cyclo ./Drivers/MS5607/AltitudeCalculations.d ./Drivers/MS5607/AltitudeCalculations.o ./Drivers/MS5607/AltitudeCalculations.su ./Drivers/MS5607/AltitudeCalculationsAccel.cyclo ./Drivers/MS5607/AltitudeCalculationsAccel.d ./Drivers/MS5607/AltitudeCalculationsAccel.o ./Drivers/MS5607/AltitudeCalculationsAccel.su ./Drivers/MS5607/MS5607SPI.cyclo ./Drivers/MS5607/MS5607SPI.d ./Drivers/MS5607/MS5607SPI.o ./Drivers/MS5607/MS5607SPI.su
 
 .PHONY: clean-Drivers-2f-MS5607
 

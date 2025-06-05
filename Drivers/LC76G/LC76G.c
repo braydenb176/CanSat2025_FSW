@@ -35,7 +35,7 @@ LC76G_gps_data LC76G_read_data()
     LC76G_gps_data gps_data;
 
     // Zero-initalized buffer
-    char buf[7] = {0};
+    char buf[80] = {0};
     char *endptr;
 
     /* Format from LC76G:
@@ -46,17 +46,19 @@ LC76G_gps_data LC76G_read_data()
     GNGGA,040143.000,3149.334166,N,11706.941670,E,2,36,0.48,61.496,M,-0.335,M,,*58
     */
 
+    HAL_UART_Receive(&huart5, buf, 74, TIMEOUT);
+    HAL_UART_Transmit(&huart3,buf, strlen(buf), TIMEOUT);
+/*
     // Skip the first three fields of received data ($<TalkerID>GGA,)
     HAL_UART_Receive(&huart5, NULL, 7, TIMEOUT);
     
     // Read UTC data
     HAL_UART_Receive(&huart5, buf, 2, TIMEOUT);
     gps_data.time_H = (uint8_t)(strtol(buf, NULL, 10));
-    /*
     // Ensure that the conversion worked
-    if (buf == endptr || *endptr != '\0')
+    //if (buf == endptr || *endptr != '\0')
         // handle error
-    */
+
     HAL_UART_Receive(&huart5, buf, 2, TIMEOUT);
     gps_data.time_M = (uint8_t)(strtol(buf, NULL, 10));
     HAL_UART_Receive(&huart5, buf, 2, TIMEOUT);
@@ -93,9 +95,8 @@ LC76G_gps_data LC76G_read_data()
 
     // Read <Quality> attribute
     HAL_UART_Receive(&huart5, buf, 1, TIMEOUT);
-    /*if (buf == '0')
+    //if (buf == '0')
         // alert caller that there is no GPS fix
-    */
 
     // Skip comma (,)
     HAL_UART_Receive(&huart5, NULL, 1, TIMEOUT);
@@ -105,6 +106,7 @@ LC76G_gps_data LC76G_read_data()
     gps_data.num_sat_used = strtol(buf, NULL, 10);
 
     // Skip (,<HDOP>,)
+    HAL_UART_Receive(&huart5, NULL, 4, TIMEOUT);
 
     // Read altitude
     HAL_UART_Receive(&huart5, buf, 2, TIMEOUT); // integer portion of value
@@ -117,7 +119,7 @@ LC76G_gps_data LC76G_read_data()
     // Skip the rest of the transmission:
     // (,M,<Sep>,M,<DiffAge>,<DiffStation>*<Checksum><CR><LF>)
     HAL_UART_Receive(&huart5, NULL, 18, TIMEOUT);
-
+*/
     return gps_data;
 }
 

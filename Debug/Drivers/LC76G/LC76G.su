@@ -1,2 +1,2 @@
 ../Drivers/LC76G/LC76G.c:3:6:LC76G_init	16	static
-../Drivers/LC76G/LC76G.c:33:16:LC76G_read_data	72	static
+../Drivers/LC76G/LC76G.c:33:16:LC76G_read_data	144	static
