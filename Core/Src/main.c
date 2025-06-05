@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2025 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -44,10 +44,11 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-int _write(int fd, char *ptr, int len) {
-    // ignore fd, just send to UART3
-    HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
-    return len;
+int _write(int fd, char *ptr, int len)
+{
+  // ignore fd, just send to UART3
+  HAL_UART_Transmit(&huart3, (uint8_t *)ptr, len, HAL_MAX_DELAY);
+  return len;
 }
 /* USER CODE END PM */
 
@@ -111,9 +112,9 @@ static void MX_FMAC_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -159,27 +160,27 @@ int main(void)
   MX_FMAC_Init();
   /* USER CODE BEGIN 2 */
   // Feedback LED
-	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
 
-	// Enable GPS and XBEE
-	HAL_GPIO_WritePin(XBEE_RST_GPIO_Port, XBEE_RST_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GPS_RST_GPIO_Port, GPS_RST_Pin, GPIO_PIN_SET);
-	HAL_Delay(3000); // wait for the Xbee to get brought back up again
+  // Enable GPS and XBEE
+  HAL_GPIO_WritePin(XBEE_RST_GPIO_Port, XBEE_RST_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPS_RST_GPIO_Port, GPS_RST_Pin, GPIO_PIN_SET);
+  HAL_Delay(3000); // wait for the Xbee to get brought back up again
 
-	// Disable ALL chip selects
-	HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(BMP_nCS_GPIO_Port, BMP_nCS_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(MAG_nCS_GPIO_Port, MAG_nCS_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(MAGEXT_nCS_GPIO_Port, MAGEXT_nCS_Pin, GPIO_PIN_SET);
+  // Disable ALL chip selects
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BMP_nCS_GPIO_Port, BMP_nCS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(MAG_nCS_GPIO_Port, MAG_nCS_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(MAGEXT_nCS_GPIO_Port, MAGEXT_nCS_Pin, GPIO_PIN_SET);
 
-	// Initialize IMU
-	ICM42688P_init(&hspi2, IMU_nCS_GPIO_Port, IMU_nCS_Pin);
+  // Initialize IMU
+  ICM42688P_init(&hspi2, IMU_nCS_GPIO_Port, IMU_nCS_Pin);
 
-	// Initialize MS5607
-	MS5607_Init(&hspi2, BMP_nCS_GPIO_Port, BMP_nCS_Pin);
+  // Initialize MS5607
+  MS5607_Init(&hspi2, BMP_nCS_GPIO_Port, BMP_nCS_Pin);
 
-	// Initialize BMM150
-	struct bmm150_dev bmm150 = BMM150_spi_init(&hspi2, MAG_nCS_GPIO_Port, MAG_nCS_Pin);
+  // Initialize BMM150
+  struct bmm150_dev bmm150 = BMM150_spi_init(&hspi2, MAG_nCS_GPIO_Port, MAG_nCS_Pin);
 
   // Initialize LC76G
   LC76G_init();
@@ -188,90 +189,103 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	int i = 0;
-	int strlen = 0;
+  int i = 0;
+  int strlen = 0;
 
 	MS5607Readings bmp_data;
 	ICM42688P_AccelData imu_data;
 	BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
-	uint8_t test = ICM42688P_read_reg(0x75);
-	printf("IMU is 0x%X! \n\r", test);
+  init_mission_data();
+  // printf("IMU is 0x%X! \n\r", test);
 
-	HAL_Delay(10);
-	printf("BMM is... 0x%X", bmm150.chip_id); // Not working :(
+  // HAL_Delay(10);
+  // printf("BMM is... 0x%X", bmm150.chip_id); // Not working :(
 
   while (1)
   {
-	strlen = printf("\n\rHi! %d\n\r", i++);
+    bmp_data = MS5607ReadValues();
+    imu_data = ICM42688P_read_data();
 
-	HAL_Delay(10);
+    global_mission_data.TEMPERATURE = bmp_data.temperature_C;
+    global_mission_data.PRESSURE = bmp_data.pressure_kPa;
+    global_mission_data.VOLTAGE = (7.62 + (0.0002 * (float)(uint8_t)rand()));
+    global_mission_data.GYRO_R = -imu_data.gyro_z * 2000;
+    global_mission_data.GYRO_P = imu_data.gyro_x * 2000;
+    global_mission_data.GYRO_Y = imu_data.gyro_y * 2000;
 
-	bmp_data = MS5607ReadValues();
-	strlen = printf("Temperature = %.2f°C, Pressure = %.2fkPa \n\r",
-			bmp_data.temperature_C,
-			bmp_data.pressure_kPa);
+    // needs to be updated
+    global_mission_data.ACCEL_R = imu_data.accel_z;
+    global_mission_data.ACCEL_P = imu_data.accel_x;
+    global_mission_data.ACCEL_Y = imu_data.accel_y;
 
-	HAL_Delay(10);
+    uint8_t mission_data_length = sizeof(global_mission_data);
 
-	imu_data = ICM42688P_read_data();
-	strlen = printf("ACCEL(X = %d, Y = %d, Z = %d), GYRO(X = %d, Y = %d, Z = %d) \n\r",
-			imu_data.accel_x,
-			imu_data.accel_y,
-			imu_data.accel_z,
-			imu_data.gyro_x,
-			imu_data.gyro_y,
-			imu_data.gyro_z);
+    // checksum
+    uint8_t bytesum = 0;
+    unsigned char *mission_data = (unsigned char *)&global_mission_data;
+    for (unsigned int i = 0; i < sizeof(global_mission_data); i++)
+    {
+      bytesum += mission_data[i];
+    }
+    uint8_t checksum = 0xFF - bytesum;
 
-	HAL_Delay(10);
+    // model packet
+    char telemetry_string[200];
+    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%.1f,%.1f,%.1f,%.1f,%d,%d,%d",
+                     global_mission_data.TEAM_ID,      // team id
+                     global_mission_data.MISSION_TIME, // temp; mission time
+                     global_mission_data.PACKET_COUNT, // temp; packet count
+                     global_mission_data.MODE,         // mode
+                     global_mission_data.STATE,        // state
+                     global_mission_data.ALTITUDE,     // temp; altitude
+                     global_mission_data.TEMPERATURE,  // temperature
+                     global_mission_data.PRESSURE,     // pressure
+                     global_mission_data.VOLTAGE,
+                     global_mission_data.GYRO_R, // gyro_r
+                     global_mission_data.GYRO_P, // gyro_p
+                     global_mission_data.GYRO_Y
+                     // gyro_y
+    );
+    // strlen = sizeof(telemetry_string);
+    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
+    strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
+                     global_mission_data.ACCEL_R, // accel_r
+                     global_mission_data.ACCEL_P, // accel_p
+                     global_mission_data.ACCEL_Y,
+                     global_mission_data.MAG_R,                   // temp; mag_r
+                     global_mission_data.MAG_P,                   // temp; mag_p
+                     global_mission_data.MAG_Y,                   // temp; mag_y
+                     global_mission_data.AUTO_GYRO_ROTATION_RATE, // temp; auto-gyro rotation rate
+                     global_mission_data.GPS_TIME,                // temp; gps time
+                     global_mission_data.GPS_ALTITUDE,            // temp; gps altitude
+                     global_mission_data.GPS_LATITUDE,            // temp; gps latitude
+                     global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
+                     global_mission_data.GPS_SATS,                // temp; # of gps satellites
+                     global_mission_data.CMD_ECHO);
+    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
 
-  gps_data = LC76G_read_data();
-	strlen = printf("GPS: Time = %d:%d:%d, Lat = %f, Lon = %f, Alt = %f, num_sats = %d \n\r",
-			gps_data.time_H,
-      gps_data.time_M,
-      gps_data.time_S,
-      gps_data.lat,
-      gps_data.lon,
-      gps_data.altitude,
-      gps_data.num_sat_used);
+    global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
 
-	HAL_Delay(10);
+    HAL_Delay(1000);
 
-	/* Not currently working
-	mag_data = BMM150_read_mag_data(&bmm150);
-	strlen = printf("MAG(X = %d, Y = %d, Z = %d) \n\r",
-				mag_data.x,
-				mag_data.y,
-				mag_data.z);
-	*/
-
-	// Bullshit.
-	strlen = printf("Battery Voltage = %1.2fV \n\r", 7.62 + (0.0002 * (float) (uint8_t) rand()));
-
-
-	// Heartbeat
-	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
-
-
-	HAL_Delay(1000);
-
-
+    HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
+    HAL_Delay(100);
+    HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -279,19 +293,18 @@ void SystemClock_Config(void)
   RCC_CRSInitTypeDef pInit = {0};
 
   /** Configure the main internal regulator output voltage
-  */
+   */
   HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Configure LSE Drive Capability
-  */
+   */
   HAL_PWR_EnableBkUpAccess();
   __HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSI48
-                              |RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_LSE;
+   * in the RCC_OscInitTypeDef structure.
+   */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSI48 | RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -310,9 +323,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
@@ -326,15 +338,15 @@ void SystemClock_Config(void)
   HAL_RCCEx_EnableLSCO(RCC_LSCOSOURCE_LSE);
 
   /** Enable the SYSCFG APB clock
-  */
+   */
   __HAL_RCC_CRS_CLK_ENABLE();
 
   /** Configures CRS
-  */
+   */
   pInit.Prescaler = RCC_CRS_SYNC_DIV1;
   pInit.Source = RCC_CRS_SYNC_SOURCE_LSE;
   pInit.Polarity = RCC_CRS_SYNC_POLARITY_RISING;
-  pInit.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000,32768);
+  pInit.ReloadValue = __HAL_RCC_CRS_RELOADVALUE_CALCULATE(48000000, 32768);
   pInit.ErrorLimitValue = 34;
   pInit.HSI48CalibrationValue = 32;
 
@@ -342,10 +354,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief ADC1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_ADC1_Init(void)
 {
 
@@ -361,7 +373,7 @@ static void MX_ADC1_Init(void)
   /* USER CODE END ADC1_Init 1 */
 
   /** Common config
-  */
+   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -384,7 +396,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure the ADC multi-mode
-  */
+   */
   multimode.Mode = ADC_MODE_INDEPENDENT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
@@ -392,7 +404,7 @@ static void MX_ADC1_Init(void)
   }
 
   /** Configure Regular Channel
-  */
+   */
   sConfig.Channel = ADC_CHANNEL_9;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
@@ -406,14 +418,13 @@ static void MX_ADC1_Init(void)
   /* USER CODE BEGIN ADC1_Init 2 */
 
   /* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
-  * @brief CORDIC Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief CORDIC Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_CORDIC_Init(void)
 {
 
@@ -432,14 +443,13 @@ static void MX_CORDIC_Init(void)
   /* USER CODE BEGIN CORDIC_Init 2 */
 
   /* USER CODE END CORDIC_Init 2 */
-
 }
 
 /**
-  * @brief FMAC Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief FMAC Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_FMAC_Init(void)
 {
 
@@ -458,14 +468,13 @@ static void MX_FMAC_Init(void)
   /* USER CODE BEGIN FMAC_Init 2 */
 
   /* USER CODE END FMAC_Init 2 */
-
 }
 
 /**
-  * @brief I2C3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief I2C3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_I2C3_Init(void)
 {
 
@@ -491,14 +500,14 @@ static void MX_I2C3_Init(void)
   }
 
   /** Configure Analogue filter
-  */
+   */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c3, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure Digital filter
-  */
+   */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c3, 0) != HAL_OK)
   {
     Error_Handler();
@@ -506,14 +515,13 @@ static void MX_I2C3_Init(void)
   /* USER CODE BEGIN I2C3_Init 2 */
 
   /* USER CODE END I2C3_Init 2 */
-
 }
 
 /**
-  * @brief IRTIM Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief IRTIM Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_IRTIM_Init(void)
 {
 
@@ -527,14 +535,13 @@ static void MX_IRTIM_Init(void)
   /* USER CODE BEGIN IRTIM_Init 2 */
 
   /* USER CODE END IRTIM_Init 2 */
-
 }
 
 /**
-  * @brief RNG Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief RNG Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_RNG_Init(void)
 {
 
@@ -554,14 +561,13 @@ static void MX_RNG_Init(void)
   /* USER CODE BEGIN RNG_Init 2 */
 
   /* USER CODE END RNG_Init 2 */
-
 }
 
 /**
-  * @brief RTC Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief RTC Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_RTC_Init(void)
 {
 
@@ -574,7 +580,7 @@ static void MX_RTC_Init(void)
   /* USER CODE END RTC_Init 1 */
 
   /** Initialize RTC Only
-  */
+   */
   hrtc.Instance = RTC;
   hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
   hrtc.Init.AsynchPrediv = 127;
@@ -590,7 +596,7 @@ static void MX_RTC_Init(void)
   }
 
   /** Enable the reference Clock input
-  */
+   */
   if (HAL_RTCEx_SetRefClock(&hrtc) != HAL_OK)
   {
     Error_Handler();
@@ -598,14 +604,13 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
-
 }
 
 /**
-  * @brief SPI2 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief SPI2 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_SPI2_Init(void)
 {
 
@@ -638,14 +643,13 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
-
 }
 
 /**
-  * @brief TIM1 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM1 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM1_Init(void)
 {
 
@@ -700,14 +704,13 @@ static void MX_TIM1_Init(void)
   /* USER CODE BEGIN TIM1_Init 2 */
 
   /* USER CODE END TIM1_Init 2 */
-
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM3_Init(void)
 {
 
@@ -771,14 +774,13 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /**
-  * @brief TIM8 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM8 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM8_Init(void)
 {
 
@@ -833,14 +835,13 @@ static void MX_TIM8_Init(void)
   /* USER CODE BEGIN TIM8_Init 2 */
 
   /* USER CODE END TIM8_Init 2 */
-
 }
 
 /**
-  * @brief TIM15 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM15 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM15_Init(void)
 {
 
@@ -899,14 +900,13 @@ static void MX_TIM15_Init(void)
 
   /* USER CODE END TIM15_Init 2 */
   HAL_TIM_MspPostInit(&htim15);
-
 }
 
 /**
-  * @brief TIM16 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM16 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM16_Init(void)
 {
 
@@ -961,14 +961,13 @@ static void MX_TIM16_Init(void)
   /* USER CODE BEGIN TIM16_Init 2 */
 
   /* USER CODE END TIM16_Init 2 */
-
 }
 
 /**
-  * @brief TIM17 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM17 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM17_Init(void)
 {
 
@@ -1023,14 +1022,13 @@ static void MX_TIM17_Init(void)
   /* USER CODE BEGIN TIM17_Init 2 */
 
   /* USER CODE END TIM17_Init 2 */
-
 }
 
 /**
-  * @brief UART5 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief UART5 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_UART5_Init(void)
 {
 
@@ -1071,14 +1069,13 @@ static void MX_UART5_Init(void)
   /* USER CODE BEGIN UART5_Init 2 */
 
   /* USER CODE END UART5_Init 2 */
-
 }
 
 /**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief USART3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_USART3_UART_Init(void)
 {
 
@@ -1119,12 +1116,11 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
-
 }
 
 /**
-  * Enable DMA controller clock
-  */
+ * Enable DMA controller clock
+ */
 static void MX_DMA_Init(void)
 {
 
@@ -1136,14 +1132,13 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -1159,24 +1154,23 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, STAT_BKUP_Pin|EN_5V_Pin|CAM1_CTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin|CAM0_CTRL_Pin|XBEE_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
-                          |GPS_RST_Pin|USR_LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin | USR_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : STAT_BKUP_Pin EN_5V_Pin CAM1_CTRL_Pin */
-  GPIO_InitStruct.Pin = STAT_BKUP_Pin|EN_5V_Pin|CAM1_CTRL_Pin;
+  GPIO_InitStruct.Pin = STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : CHG_STAT2_Pin CHG_STAT1_Pin */
-  GPIO_InitStruct.Pin = CHG_STAT2_Pin|CHG_STAT1_Pin;
+  GPIO_InitStruct.Pin = CHG_STAT2_Pin | CHG_STAT1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
@@ -1188,7 +1182,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(CLK_32K_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DRV_DIR_Pin CAM0_CTRL_Pin XBEE_RST_Pin */
-  GPIO_InitStruct.Pin = DRV_DIR_Pin|CAM0_CTRL_Pin|XBEE_RST_Pin;
+  GPIO_InitStruct.Pin = DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1196,8 +1190,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : IMU_nCS_Pin MAGEXT_nCS_Pin MAG_nCS_Pin BMP_nCS_Pin
                            USR_LED_Pin */
-  GPIO_InitStruct.Pin = IMU_nCS_Pin|MAGEXT_nCS_Pin|MAG_nCS_Pin|BMP_nCS_Pin
-                          |USR_LED_Pin;
+  GPIO_InitStruct.Pin = IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | USR_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1212,7 +1205,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB4 PB6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_6;
+  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -1246,8 +1239,8 @@ void SendTelemetry(void *argument)
 {
   /* USER CODE BEGIN SendTelemetry */
 
-	// this can probably be dynamically typed to take the sizeof() each property instead of being hardcoded
-	unsigned int property_sizes[] = {2, 4, 4, 1, STATE_TEXT_LEN, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 1, CMD_ECHO_LEN};
+  // this can probably be dynamically typed to take the sizeof() each property instead of being hardcoded
+  unsigned int property_sizes[] = {2, 4, 4, 1, STATE_TEXT_LEN, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 4, 4, 4, 4, 1, CMD_ECHO_LEN};
 
   /* Infinite loop */
   for (;;)
@@ -1325,17 +1318,16 @@ void SendTelemetry(void *argument)
   /* USER CODE END SendTelemetry */
 }
 
-
 /* USER CODE END 4 */
 
 /**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
+ * @brief  Period elapsed callback in non blocking mode
+ * @note   This function is called  when TIM6 interrupt took place, inside
+ * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+ * a global variable "uwTick" used as application time base.
+ * @param  htim : TIM handle
+ * @retval None
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
@@ -1351,9 +1343,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 }
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -1365,14 +1357,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
