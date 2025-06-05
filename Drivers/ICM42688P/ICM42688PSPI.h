@@ -13,6 +13,16 @@ extern "C"
 
 typedef struct ICM42688P_AccelData
 {
+    uint16_t accel_old_x;
+    uint16_t accel_old_y;
+    uint16_t accel_old_z;
+    uint16_t accel_new_x = 9999;
+    uint16_t accel_new_y = 9999;
+    uint16_t accel_new_z = 9999;
+
+    uint32_t new_time = 0;
+    uint32_t old_time;
+
     uint16_t accel_x;
     uint16_t accel_y;
     uint16_t accel_z;
