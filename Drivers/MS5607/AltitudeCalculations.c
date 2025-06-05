@@ -1,4 +1,4 @@
-#include "MS5607SPI.h"
+/*#include "MS5607SPI.h"
 #include <math.h>
 #include <global.h>
 
@@ -22,6 +22,7 @@ Temperature - Celcius - double
 // The altitude equation is for absolute altitude.
 // calibraing : 1 = True, 0 = False
 
+/*
 float caluclateAltitude(double pressure, int calibrating){
     float h_meter = 0.3048*((1 - pow((pressure/1013.25), 0.190284))*145366.54);
     if (calibrating == 1){
@@ -44,13 +45,16 @@ void at_apogee(){
         if (max_altitude == 0){
             max_altitude = altitude_history[2];
             apogee_difference_ratio = alt_offset_height / max_altitude;
-            payload_state = APOGEE;
+            char _state[] = "APOGEE";
+            memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
         else if(max_altitude * (apogee_base_ratio + apogee_difference_ratio) > altitude_history[0]){
-            payload_state = PROBE_RELEASE;
+        	char _state[] = "PROBE_RELEASE";
+        	memcpy(global_mission_data.STATE, _state, sizeof(_state));
             // DO ACTUATOR STUFF
         } else {
-            payload_state = DESCENT;
+        	char _state[] = "DESCENT";
+        	memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
     }
-}
+}*/

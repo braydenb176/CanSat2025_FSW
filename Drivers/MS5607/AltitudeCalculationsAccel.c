@@ -1,6 +1,7 @@
 #include "MS5607SPI.h"
 #include "ICM42688P/ICM42688PSPI.h"
 #include <math.h>
+#include <string.h>
 #include <global.h>
 
 
@@ -41,21 +42,26 @@ float calculateAltitude(double pressure, int calibrating){
 // Rather than using a history of altitudes, we figure out when acceleration matches the acceleration of gravity.
 // Includes a tolerance to ensure apogee state is reached.
 void determine_state(double altitude, ICM42688P_AccelData data){
-    if (altitude > lower_altitude_threshold && payload_state == LAUNCH_PAD) {
-        payload_state = ASCENT;
-    } else if (altitude < lower_altitude_threshold && payload_state == PROBE_RELEASE) {
-        payload_state = LANDED;
+    if (altitude > lower_altitude_threshold && strcmp(global_mission_data.STATE, "LAUNCH_PAD")) {
+    	char _state[] = "ASCENT";
+        memcpy(global_mission_data.STATE, _state, sizeof(_state));
+    } else if (altitude < lower_altitude_threshold && strcmp(global_mission_data.STATE, "PROBE_RELEASE")) {
+    	char _state[] = "LANDED";
+    	memcpy(global_mission_data.STATE, _state, sizeof(_state));
     } else if(data.accel_z >= (1 - accel_tolerance)){
         if (max_altitude == 0){
             max_altitude = altitude;
             apogee_difference_ratio = alt_offset_height / max_altitude;
-            payload_state = APOGEE;
+            char _state[] = "APOGEE";
+            memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
         else if(max_altitude * (apogee_base_ratio + apogee_difference_ratio) > altitude){
-            payload_state = PROBE_RELEASE;
+        	char _state[] = "PROBE_RELEASE";
+        	memcpy(global_mission_data.STATE, _state, sizeof(_state));
             // DO ACTUATOR STUFF
         } else {
-            payload_state = DESCENT;
+        	char _state[] = "DESCENT";
+            memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
     }
 }
