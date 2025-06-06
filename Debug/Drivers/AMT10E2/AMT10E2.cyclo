@@ -1,4 +1,4 @@
-../Drivers/AMT10E2/AMT10E2.c:8:6:QENC_Init_Encoder0	1
-../Drivers/AMT10E2/AMT10E2.c:33:6:QENC_Init_Encoder1	1
-../Drivers/AMT10E2/AMT10E2.c:57:9:QENC_Get_Encoder0_Count	1
-../Drivers/AMT10E2/AMT10E2.c:62:9:QENC_Get_Encoder1_Count	1
+../Drivers/AMT10E2/AMT10E2.c:4:6:QENC_Init_Encoder0	1
+../Drivers/AMT10E2/AMT10E2.c:29:6:QENC_Init_Encoder1	1
+../Drivers/AMT10E2/AMT10E2.c:53:9:QENC_Get_Encoder0_Count	1
+../Drivers/AMT10E2/AMT10E2.c:58:9:QENC_Get_Encoder1_Count	1
