@@ -212,6 +212,77 @@ int main(void)
 
   while (1)
   {
+
+    // enable interrupts
+    HAL_NVIC_EnableIRQ(USART3_IRQn);
+
+    // receive command (15 bytes max?)
+    uint8_t rx_buff[15];
+    HAL_UART_Receive_IT(&huart3, rx_buff, 15);
+
+    // step1: convert rx_buff array of "uint8_t"s into array of "chars"
+    char* char_array = (char*)rx_buff;
+    char rx_string[15];
+
+    // step2: convert array of chars into string  (https://www.geeksforgeeks.org/convert-character-array-to-string-in-c/)
+    strncpy(rx_string, char_array, 20);
+    rx_string[20] = '\0';
+
+    // step3: use string::compare and chop off the first 12 characters of the string (https://cplusplus.com/reference/string/string/compare/)
+    // char cmd_prefix[12] = "CMD,3174,CX,";
+    // cmd_length = strlen(cmd_prefix);
+    // const char *sub_cmd = &rx_string[cmd_length];
+    //if (strncmp(rx_string, cmd_prefix, cmd_length) != 0) {
+    //
+    //if (strncmp(&sub_cmd, "SIM", cmd_length) != 0) {
+    //break;
+    //}
+    //elif (strncmp(&sub_cmd, "CAL", cmd_length) != 0) {
+    //break;
+    //}
+    //elif (strncmp(&sub_cmd, "MEC", cmd_length) != 0) {
+    //break;
+    //}
+    if(strncmp(rx_string,"CMD,3174,CX,ON",14)){
+    telemetry_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,CX,OFF",15)){
+    telemetry_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,ST,GPS",15)){
+
+    }
+    elif(strncmp(rx_string,"CMD,3174,SIM,ENABLE",19)){
+    simulation_pre = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,SIM,ACTIVATE",21)){
+    if(simulation_pre == 1){
+    simulation_enable = 1;}
+    }
+
+    elif(strncmp(rx_string,"CMD,3174,SIM,DISABLE",20)){
+    simulation_enable = 0;
+    }
+    // ADD SIMP
+    elif(strncmp(rx_string,"CMD,3174,SIMP,",14)){
+    char *pressure_str = rx_string + 14;
+    char *str_end;
+    int pressure_pa = strtol(rx_string + 14, &str_end, 10);
+    // if (str_end == pressure_str || *str_end != '\0')
+    // it wasn't a valid number
+    simulation_pressure = pressure_pa / 1000;
+    }
+    elif(strncmp(rx_string,"CMD,3174,CAL", 12)){
+    is_calibrated = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,ON",20)){
+    mec_wire_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,OFF",21)){
+    mec_wire_enable = 0;
+    }
+
+    
     // Receive command from ground station
     HAL_UART_Receive(&huart3, command, 64, 10);
     process_command(command);
