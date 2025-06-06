@@ -50,12 +50,14 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../../Drivers/ICM42688P/ICM42688PSPI.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g491xx.h \
  ../Core/Src/../../Drivers/MS5607/MS5607SPI.h \
+ /Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/Drivers/ICM42688P/ICM42688PSPI.h \
  ../Core/Src/../../Drivers/BMM150/BMM150SPI.h \
  ../Core/Src/../../Drivers/BMM150/bmm150.h \
  ../Core/Src/../../Drivers/BMM150/bmm150_def.h \
  ../Core/Src/../../Drivers/LC76G/LC76G.h \
  ../Core/Src/../../Drivers/AMT10E2/AMT10E2.h \
- ../Core/Src/../../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h
+ ../Core/Src/../../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
+ ../Core/Src/../../Drivers/BQ28Z610/BQ28Z610I2C.h
 ../Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
@@ -111,9 +113,11 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Src/../../Drivers/ICM42688P/ICM42688PSPI.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g491xx.h:
 ../Core/Src/../../Drivers/MS5607/MS5607SPI.h:
+/Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/Drivers/ICM42688P/ICM42688PSPI.h:
 ../Core/Src/../../Drivers/BMM150/BMM150SPI.h:
 ../Core/Src/../../Drivers/BMM150/bmm150.h:
 ../Core/Src/../../Drivers/BMM150/bmm150_def.h:
 ../Core/Src/../../Drivers/LC76G/LC76G.h:
 ../Core/Src/../../Drivers/AMT10E2/AMT10E2.h:
 ../Core/Src/../../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
+../Core/Src/../../Drivers/BQ28Z610/BQ28Z610I2C.h:
