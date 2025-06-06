@@ -94,10 +94,10 @@ ICM42688P_AccelData ICM42688P_read_data()
     return data;
 }
 
-uint16_t gyro_old_x = 0;
-uint16_t gyro_old_y = 0;
-uint16_t gyro_old_z = 0;
-uint32_t old_time = 0; // Might need to reinitialized to actual start.
+int16_t gyro_old_x = 0;
+int16_t gyro_old_y = 0;
+int16_t gyro_old_z = 0;
+int32_t old_time = 0; // Might need to reinitialized to actual start.
 
 void Transfer_Data(uint16_t x, uint16_t y, uint16_t z, uint32_t time)
 {

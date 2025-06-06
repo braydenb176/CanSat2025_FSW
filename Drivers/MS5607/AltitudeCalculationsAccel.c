@@ -1,3 +1,4 @@
+/*
 #include "MS5607SPI.h"
 #include "ICM42688P/ICM42688PSPI.h"
 #include <math.h>
@@ -25,6 +26,8 @@ Temperature - Celcius - double
 // https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
 // The altitude equation is for absolute altitude.
 // calibraing : 1 = True, 0 = False
+
+/*
 float calculateAltitude(double pressure, int calibrating){
     float h_meter = 0.3048*((1 - pow((pressure/1013.25), 0.190284))*145366.54);
     if (calibrating == 1){
@@ -65,3 +68,4 @@ void determine_state(double altitude, ICM42688P_AccelData data){
         }
     }
 }
+*/

@@ -31,7 +31,7 @@ typedef struct
 	float ALTITUDE;
 	float TEMPERATURE;
 	float PRESSURE;
-	float VOLTAGE; // might change to int, can multiply by 10 and store as int
+	uint16_t VOLTAGE; // might change to int, can multiply by 10 and store as int
 
 	int16_t GYRO_R;
 	int16_t GYRO_P;

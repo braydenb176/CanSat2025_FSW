@@ -43,7 +43,10 @@ Drivers/MS5607/MS5607SPI.o: ../Drivers/MS5607/MS5607SPI.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
+ /Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/Drivers/ICM42688P/ICM42688PSPI.h \
+ ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g491xx.h \
+ ../Core/Inc/global.h
 ../Drivers/MS5607/MS5607SPI.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
@@ -89,3 +92,6 @@ Drivers/MS5607/MS5607SPI.o: ../Drivers/MS5607/MS5607SPI.c \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
+/Users/bsibb22/Documents/CanSat2025_FSW-NO_RTOS/CanSat2025_FSW/Drivers/ICM42688P/ICM42688PSPI.h:
+../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g491xx.h:
+../Core/Inc/global.h:

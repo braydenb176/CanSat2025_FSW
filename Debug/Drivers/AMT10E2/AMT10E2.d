@@ -1,4 +1,5 @@
 Drivers/AMT10E2/AMT10E2.o: ../Drivers/AMT10E2/AMT10E2.c \
+ ../Drivers/AMT10E2/AMT10E2.h \
  ../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
  ../Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
@@ -44,6 +45,7 @@ Drivers/AMT10E2/AMT10E2.o: ../Drivers/AMT10E2/AMT10E2.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
+../Drivers/AMT10E2/AMT10E2.h:
 ../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
