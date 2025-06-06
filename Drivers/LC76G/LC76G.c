@@ -195,6 +195,7 @@ LC76G_gps_data LC76G_read_data()
                 memset(temp, 0, 3 * sizeof(char));
                 strncpy(temp, token + 4, 2);    // Seconds
                 gps_data.time_M = strtol(temp, NULL, 10);
+                break;
             case 2: // <Lat>
                 char temp[8] = {0};
                 strncpy(temp, token, 2);        // Degrees
@@ -207,10 +208,12 @@ LC76G_gps_data LC76G_read_data()
                 memset(temp, 0, 8 * sizeof(char));
                 strncpy(temp, token + 5, 6);    // Decimal minutes
                 gps_data.lat += ((double)strtol(temp, NULL) / pow(10, strlen(temp))) / 60;
+                break;
             case 3: // <N/S>
                 // Flip sign of latitude if in southern hemisphere
                 if (token[0] == 'S')
                     gps_data.lat = -gps_data.lat;
+                break;
             case 4: // <Lon>
                 char temp[8] = {0};
                 strncpy(temp, token, 3);        // Degrees
@@ -223,14 +226,18 @@ LC76G_gps_data LC76G_read_data()
                 memset(temp, 0, 8 * sizeof(char));
                 strncpy(temp, token + 6, 6);    // Decimal minutes
                 gps_data.lon += ((double)strtol(temp, NULL) / pow(10, strlen(temp))) / 60;
+                break;
             case 5: // <E/W>
                 // Flip sign of latitude if in western hemisphere
                 if (token[0] == 'W')
                     gps_data.lon = -gps_data.lon;
+                break;
             case 7: // <NumSatUsed>
                 gps_data.num_sat_used = strtol(token, NULL, 10);
+                break;
             case 9: // <Alt>
                 gps_data.altitude = strtol(token, NULL, 10);
+                break;
             default:
                 break;
         }   // End switch statement
