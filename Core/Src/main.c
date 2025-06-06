@@ -205,11 +205,25 @@ int main(void)
   LC76G_gps_data gps_data;
 
   uint8_t calibrated = 1;
+  char command[64] = {0};
 
   init_mission_data();
 
   while (1)
   {
+    // Receive command from ground station
+    HAL_UART_Receive(&huart3, command, 64, HAL_MAX_DELAY);
+    process_command(command);
+
+    // Handle flags as needed
+    // Turn on the flamin' wire
+    if (mec_wire_enable) {
+      // TODO: need to also set the DRV phase pin
+      HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin /*| */, GPIO_PIN_SET);
+    }
+    
+
+
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
     gps_data = LC76G_read_data();
@@ -261,7 +275,8 @@ int main(void)
                      // gyro_y
     );
     // strlen = sizeof(telemetry_string);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    if (telemetry_enable)
+      HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
     memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
     strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
                      global_mission_data.ACCEL_R, // accel_r
@@ -277,7 +292,8 @@ int main(void)
                      global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
                      global_mission_data.GPS_SATS,                // temp; # of gps satellites
                      global_mission_data.CMD_ECHO);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    if (telemetry_enable)
+      HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
 
     global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
 
