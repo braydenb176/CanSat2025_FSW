@@ -37,6 +37,10 @@ extern "C"
 #endif
 
 #include "stm32g4xx_hal.h"
+#include "ICM42688P/ICM42688PSPI.h"
+#include <math.h>
+#include <string.h>
+#include <global.h>
 
 /* MS5607 SPI COMMANDS */
 #define RESET_COMMAND 0x1E
@@ -109,7 +113,7 @@ extern "C"
    * @param  None
    * @retval Pressure in Kilo Pascal
    */
-MS5607Readings MS5607ReadValues(void);
+  MS5607Readings MS5607ReadValues(void);
 
   /**
    * @brief  Enables the chip select pin
@@ -138,6 +142,20 @@ MS5607Readings MS5607ReadValues(void);
    * @retval None
    */
   void MS5607SetPressureOSR(MS5607OSRFactors oversampling_ratio);
+
+  /*
+  Units
+  Pressure - mbars - double
+  Temperature - Celcius - double
+  */
+
+  // https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
+  // The altitude equation is for absolute altitude.
+  // calibraing : 1 = True, 0 = False
+
+  // pressure should be input in kilopascals!!
+  float calculateAltitude(double pressure, int calibrating);
+
 
 #ifdef __cplusplus
 }

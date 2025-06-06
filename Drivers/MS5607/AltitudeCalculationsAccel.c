@@ -9,7 +9,7 @@
 float const lower_altitude_threshold = 5.0;
 float max_altitude = 0.0;
 
-float apogee_base_ratio = 0.75; 
+float apogee_base_ratio = 0.75;
 float apogee_difference_ratio = 0.00;
 
 float const alt_offset_height = 20.00;
@@ -46,11 +46,11 @@ float calculateAltitude(double pressure, int calibrating){
 // Includes a tolerance to ensure apogee state is reached.
 void determine_state(double altitude, ICM42688P_AccelData data){
     if (altitude > lower_altitude_threshold && strcmp(global_mission_data.STATE, "LAUNCH_PAD")) {
-    	char _state[] = "ASCENT";
+        char _state[] = "ASCENT";
         memcpy(global_mission_data.STATE, _state, sizeof(_state));
     } else if (altitude < lower_altitude_threshold && strcmp(global_mission_data.STATE, "PROBE_RELEASE")) {
-    	char _state[] = "LANDED";
-    	memcpy(global_mission_data.STATE, _state, sizeof(_state));
+        char _state[] = "LANDED";
+        memcpy(global_mission_data.STATE, _state, sizeof(_state));
     } else if(data.accel_z >= (1 - accel_tolerance)){
         if (max_altitude == 0){
             max_altitude = altitude;
@@ -59,13 +59,14 @@ void determine_state(double altitude, ICM42688P_AccelData data){
             memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
         else if(max_altitude * (apogee_base_ratio + apogee_difference_ratio) > altitude){
-        	char _state[] = "PROBE_RELEASE";
-        	memcpy(global_mission_data.STATE, _state, sizeof(_state));
+            char _state[] = "PROBE_RELEASE";
+            memcpy(global_mission_data.STATE, _state, sizeof(_state));
             // DO ACTUATOR STUFF
         } else {
-        	char _state[] = "DESCENT";
+            char _state[] = "DESCENT";
             memcpy(global_mission_data.STATE, _state, sizeof(_state));
         }
     }
 }
+
 */

@@ -31,6 +31,7 @@
 #include "../../Drivers/BMM150/BMM150SPI.h"
 #include "../../Drivers/LC76G/LC76G.h"
 #include "../../Drivers/AMT10E2/AMT10E2.h"
+#include "../../Drivers/BQ28Z610/BQ28Z610I2C.h"
 
 /* USER CODE END Includes */
 
@@ -128,7 +129,7 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 
-	HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -203,8 +204,7 @@ int main(void)
   BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
-  bmp_data = MS5607ReadValues();
-  global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, 1);
+  uint8_t calibrated = 1;
 
   init_mission_data();
 
@@ -214,13 +214,16 @@ int main(void)
     imu_data = ICM42688P_read_data();
     gps_data = LC76G_read_data();
 
-    global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, 0);
+	global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, calibrated);
+	calibrated = 0;
+
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
     global_mission_data.PRESSURE = bmp_data.pressure_kPa;
-    // global_mission_data.VOLTAGE = (7.62 + (0.0002 * (float)(uint8_t)rand()));
-    uint16_t battery_mV = 37;
+
+    uint16_t battery_mV = 0;
     BQ28Z610_ReadVoltage(&hi2c3, &battery_mV); // global_mission_data.VOLTAGE = BQ28Z610_ReadVoltage(&hi2c2, )
-    global_mission_data.VOLTAGE = battery_mV;
+    global_mission_data.VOLTAGE = (float)(battery_mV) / 1000.0;
+
     global_mission_data.GYRO_R = imu_data.gyro_z;
     global_mission_data.GYRO_P = imu_data.gyro_x;
     global_mission_data.GYRO_Y = imu_data.gyro_y;
@@ -242,7 +245,7 @@ int main(void)
 
     // model packet
     char telemetry_string[200];
-    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%.1f,%.1f,%.1f,%d,%d,%d,%d",
+    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%3.1f,%.1f,%.1f,%.1f,%d,%d,%d",
                      global_mission_data.TEAM_ID,      // team id
                      global_mission_data.MISSION_TIME, // temp; mission time
                      global_mission_data.PACKET_COUNT, // temp; packet count

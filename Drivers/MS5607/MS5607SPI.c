@@ -29,10 +29,7 @@ SOFTWARE.
  */
 
 #include "MS5607SPI.h"
-#include "ICM42688P/ICM42688PSPI.h"
-#include <math.h>
-#include <string.h>
-#include <global.h>
+
 
 /* MS5607 PROM Data Structure */
 struct promData
@@ -342,30 +339,22 @@ float const accel_tolerance = 0.1;
 
 float calibrated_altitude = 0.00;
 
-/*
-Units
-Pressure - mbars - double
-Temperature - Celcius - double
-*/
-
-// https://www.weather.gov/media/epz/wxcalc/pressureAltitude.pdf
-// The altitude equation is for absolute altitude.
-// calibraing : 1 = True, 0 = False
-float calculateAltitude(double pressure, int calibrating)
-{
-  float h_meter = 0.3048 * ((1 - pow((pressure / 1013.25), 0.190284)) * 145366.54);
-  if (calibrating == 1)
-  {
-    // Absolute Altitude of the ground station
-    calibrated_altitude = h_meter;
-    // Relative Altitude of GCS
-    return 0;
-  }
-  else
-  {
-    // Relative Altitude of CanSat
-    return h_meter - calibrated_altitude;
-  }
+float calculateAltitude(double pressure, int calibrating) {
+	double pressure_mb = 33.8639 * (0.2953 * pressure);
+	float h_meter = 0.3048 * (1 - pow((pressure_mb / 1013.25), 0.190284)) * 145366.54;
+	if (calibrating == 1)
+	{
+		// Absolute Altitude of the ground station
+	    calibrated_altitude = h_meter;
+	    // Relative Altitude of GCS
+	    return 0;
+	}
+	else
+	{
+	      // Relative Altitude of CanSat
+	   return h_meter - calibrated_altitude;
+	}
+	//return 100.0;
 }
 
 // Rather than using a history of altitudes, we figure out when acceleration matches the acceleration of gravity.
