@@ -57,7 +57,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Core/Src/../../Drivers/LC76G/LC76G.h \
  ../Core/Src/../../Drivers/AMT10E2/AMT10E2.h \
  ../Core/Src/../../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- ../Core/Src/../../Drivers/BQ28Z610/BQ28Z610I2C.h
+ ../Core/Src/../../Drivers/BQ28Z610/BQ28Z610I2C.h \
+ ../Core/Src/../../Drivers/DRV8838/DRV8838.h
 ../Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Inc/stm32g4xx_hal_conf.h:
@@ -121,3 +122,4 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Src/../../Drivers/AMT10E2/AMT10E2.h:
 ../Core/Src/../../Drivers/AMT10E2/../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 ../Core/Src/../../Drivers/BQ28Z610/BQ28Z610I2C.h:
+../Core/Src/../../Drivers/DRV8838/DRV8838.h:

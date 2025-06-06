@@ -21,7 +21,7 @@ void drv8838_init(TIM_HandleTypeDef *htim, GPIO_TypeDef* ph_port, uint8_t ph_pin
     PH_Pin = ph_pin; // This is the specific GPIO pin I want to use
 
     // Start PWM on TIM3_CH1 (PA6)
-    HAL_TIM_PWM_Start(motor_pwm_htim, TIM_CHANNEL_1);
+    HAL_TIM_PWM_Start(motor_pwm_htim, TIM_CHANNEL_2);
 
     // Set PG10 as output (already done in MX_GPIO_Init, ideally)
     HAL_GPIO_WritePin(PH_GPIO_Port, PH_Pin, GPIO_PIN_RESET); // Default to REVERSE

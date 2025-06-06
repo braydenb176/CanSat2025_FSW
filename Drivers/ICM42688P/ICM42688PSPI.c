@@ -88,6 +88,7 @@ int16_t Get_Accel_R(int16_t gyro_r, uint32_t time)
 
 ICM42688P_AccelData ICM42688P_read_data()
 {
+	ICM42688P_AccelData data = {0};
     data.accel_z = ICM42688P_read_reg(0x23);
 
     data.gyro_p = ICM42688P_read_reg(0x25);

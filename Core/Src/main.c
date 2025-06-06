@@ -32,6 +32,7 @@
 #include "../../Drivers/LC76G/LC76G.h"
 #include "../../Drivers/AMT10E2/AMT10E2.h"
 #include "../../Drivers/BQ28Z610/BQ28Z610I2C.h"
+#include "../../Drivers/DRV8838/DRV8838.h"
 
 /* USER CODE END Includes */
 
@@ -153,7 +154,7 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM8_Init();
-  MX_TIM15_Init();
+  //MX_TIM15_Init();
   MX_TIM16_Init();
   MX_TIM17_Init();
   MX_UART5_Init();
@@ -192,6 +193,8 @@ int main(void)
   // Initializing AMT10E2
   QENC_Init_Encoder0();
 
+  //drv8838_init(&htim15, DRV_DIR_GPIO_Port, DRV_DIR_Pin);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -204,7 +207,7 @@ int main(void)
   BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
-  uint8_t super_hot_resistor_cycle_limit = 3;
+  uint8_t super_hot_resistor_cycle_limit = 30;
   uint8_t super_hot_resistor_cycles = 0;
   char command[64] = {0};
 
@@ -217,75 +220,111 @@ int main(void)
     HAL_NVIC_EnableIRQ(USART3_IRQn);
 
     // receive command (15 bytes max?)
-    uint8_t rx_buff[15];
-    HAL_UART_Receive_IT(&huart3, rx_buff, 15);
+    uint8_t rx_buff[25];
+    HAL_UART_Receive_IT(&huart3, rx_buff, 25);
+    //HAL_UART_Transmit(&huart3, rx_buff, sizeof(rx_buff), HAL_MAX_DELAY);
 
     // step1: convert rx_buff array of "uint8_t"s into array of "chars"
-    char* char_array = (char*)rx_buff;
-    char rx_string[15];
+    char *char_array = (char *)rx_buff;
+    char rx_string[25];
 
     // step2: convert array of chars into string  (https://www.geeksforgeeks.org/convert-character-array-to-string-in-c/)
-    strncpy(rx_string, char_array, 20);
-    rx_string[20] = '\0';
+    strncpy(rx_string, char_array, 25);
+    //strcpy(global_mission_data.CMD_ECHO, rx_string);
+
+    rx_string[24] = '\0';
+    // HAL_UART_Transmit(&huart3, rx_string, sizeof(rx_string), HAL_MAX_DELAY);
 
     // step3: use string::compare and chop off the first 12 characters of the string (https://cplusplus.com/reference/string/string/compare/)
     // char cmd_prefix[12] = "CMD,3174,CX,";
     // cmd_length = strlen(cmd_prefix);
     // const char *sub_cmd = &rx_string[cmd_length];
-    //if (strncmp(rx_string, cmd_prefix, cmd_length) != 0) {
+    // if (strncmp(rx_string, cmd_prefix, cmd_length) != 0) {
     //
-    //if (strncmp(&sub_cmd, "SIM", cmd_length) != 0) {
-    //break;
+    // if (strncmp(&sub_cmd, "SIM", cmd_length) != 0) {
+    // break;
     //}
-    //elif (strncmp(&sub_cmd, "CAL", cmd_length) != 0) {
-    //break;
+    // elif (strncmp(&sub_cmd, "CAL", cmd_length) != 0) {
+    // break;
     //}
-    //elif (strncmp(&sub_cmd, "MEC", cmd_length) != 0) {
-    //break;
+    // elif (strncmp(&sub_cmd, "MEC", cmd_length) != 0) {
+    // break;
     //}
-    if(strncmp(rx_string,"CMD,3174,CX,ON",14)){
-    telemetry_enable = 1;
+    if (strncmp(rx_string, "CMD,3174,CX,ON", 14) == 0)
+    {
+      telemetry_enable = 1;
+      char c_echo[] = "CXON";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
     }
-    elif(strncmp(rx_string,"CMD,3174,CX,OFF",15)){
-    telemetry_enable = 1;
+    else if (strncmp(rx_string, "CMD,3174,CX,OFF", 15) == 0)
+    {
+      telemetry_enable = 0;
+      char c_echo[] = "CXOFF";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
     }
-    elif(strncmp(rx_string,"CMD,3174,ST,GPS",15)){
+    else if (strncmp(rx_string, "CMD,3174,ST,GPS", 15) == 0)
+    {
+    }
+    else if (strncmp(rx_string, "CMD,3174,SIM,ENABLE", 19) == 0)
+    {
+      simulation_pre = 1;
+      char c_echo[] = "SIMENABLE";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
+    }
+    else if (strncmp(rx_string, "CMD,3174,SIM,ACTIVATE", 21) == 0)
+    {
+      if (simulation_pre == 1)
+      {
+        simulation_enable = 1;
+        char c_echo[] = "SIMACT";
+        strcpy(global_mission_data.CMD_ECHO, c_echo);
+      }
+    }
 
-    }
-    elif(strncmp(rx_string,"CMD,3174,SIM,ENABLE",19)){
-    simulation_pre = 1;
-    }
-    elif(strncmp(rx_string,"CMD,3174,SIM,ACTIVATE",21)){
-    if(simulation_pre == 1){
-    simulation_enable = 1;}
-    }
-
-    elif(strncmp(rx_string,"CMD,3174,SIM,DISABLE",20)){
-    simulation_enable = 0;
+    else if (strncmp(rx_string, "CMD,3174,SIM,DISABLE", 20) == 0)
+    {
+      simulation_enable = 0;
+      char c_echo[] = "SIMDIS";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
     }
     // ADD SIMP
-    elif(strncmp(rx_string,"CMD,3174,SIMP,",14)){
-    char *pressure_str = rx_string + 14;
-    char *str_end;
-    int pressure_pa = strtol(rx_string + 14, &str_end, 10);
-    // if (str_end == pressure_str || *str_end != '\0')
-    // it wasn't a valid number
-    simulation_pressure = pressure_pa / 1000;
+    else if (strncmp(rx_string, "CMD,3174,SIMP,", 14) == 0)
+    {
+      char *pressure_str = rx_string + 14;
+      char *str_end;
+      int pressure_pa = strtol(rx_string + 14, &str_end, 10);
+      // if (str_end == pressure_str || *str_end != '\0')
+      // it wasn't a valid number
+      simulated_pressure = pressure_pa / 1000;
+      char c_echo[] = "SIMP";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
     }
-    elif(strncmp(rx_string,"CMD,3174,CAL", 12)){
-    is_calibrated = 1;
+    else if (strncmp(rx_string, "CMD,3174,CAL", 12) == 0)
+    {
+      is_calibrated = 1;
+      char c_echo[] = "CAL";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
     }
-    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,ON",20)){
-    mec_wire_enable = 1;
+    else if (strncmp(rx_string, "CMD,3174,MEC,WIRE,ON", 20) == 0)
+    {
+      mec_wire_enable = 1;
+      char c_echo[] = "MECON";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
+      HAL_UART_Transmit(&huart3, c_echo, sizeof(c_echo), HAL_MAX_DELAY);
     }
-    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,OFF",21)){
-    mec_wire_enable = 0;
+    else if (strncmp(rx_string, "CMD,3174,MEC,WIRE,OFF", 21) == 0)
+    {
+      mec_wire_enable = 0;
+      char c_echo[] = "MECOFF";
+      strcpy(global_mission_data.CMD_ECHO, c_echo);
+    }
+    else {
+
     }
 
-    
     // Receive command from ground station
-    HAL_UART_Receive(&huart3, command, 64, 10);
-    process_command(command);
+    //HAL_UART_Receive(&huart3, command, 64, 10);
+    //process_command(command);
 
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
@@ -400,7 +439,7 @@ int main(void)
     else
     {
       // turn resistor off
-      HAL_GPIO_WritePin(DRV_PWM_GPIO_Port, DRV_PWM_Pin, GPIO_PIN_RESET);
+    	HAL_GPIO_WritePin(DRV_PWM_GPIO_Port, DRV_PWM_Pin, GPIO_PIN_RESET);
       super_hot_resistor_cycles = 0;
     }
 
@@ -1287,7 +1326,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, STAT_BKUP_Pin | EN_5V_Pin | CAM1_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, DRV_PWM_Pin | DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, IMU_nCS_Pin | MAGEXT_nCS_Pin | MAG_nCS_Pin | BMP_nCS_Pin | GPS_RST_Pin | USR_LED_Pin, GPIO_PIN_RESET);
@@ -1312,7 +1351,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(CLK_32K_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : DRV_DIR_Pin CAM0_CTRL_Pin XBEE_RST_Pin */
-  GPIO_InitStruct.Pin = DRV_DIR_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin;
+  GPIO_InitStruct.Pin = DRV_DIR_Pin | DRV_PWM_Pin | CAM0_CTRL_Pin | XBEE_RST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
