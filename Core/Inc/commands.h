@@ -54,7 +54,7 @@ typedef enum {
 	CMD_MEC_INVLD
 } CMD_STATUS;
 
-CMD_STATUS process_command(char* incoming, Mission_Data* mission_data);
-void run_command_test_cases(Mission_Data* mission_data);
+CMD_STATUS process_command(char* incoming);
+void run_command_test_cases();
 
 #endif /* INC_COMMANDS_H_ */

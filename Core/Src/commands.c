@@ -109,6 +109,7 @@ static CMD_STATUS perform_ST(const char* incoming, char* cmd_ptr){
 	  //first verify if in right format (not null pointer, colons in right place, all digits)
 	  //then use macro, or helper func another file kinda needs to be made for that (including verifying above)
 	  if(verify_time_format(time)){
+		  gps_time_enable = 0;
 		  strncpy(global_mission_data.MISSION_TIME, cmd_ptr + 3, 8);
 		  return CMD_ST_UTC;
 	  }else{
@@ -155,7 +156,7 @@ static CMD_STATUS perform_SIMP(const char* incoming, char* cmd_ptr){
 }
 
 static CMD_STATUS perform_CAL(){
-	if (strncmp(global_mission_data.STATE, "LAUNCH_PAD", 10))
+	if (!strncmp(global_mission_data.STATE, "LAUNCH_PAD", 10))
 		return CMD_CAL_INVLD;
 
 	global_mission_data.ALTITUDE = 0;
