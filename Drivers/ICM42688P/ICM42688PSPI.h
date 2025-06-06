@@ -13,14 +13,6 @@ extern "C"
 
 typedef struct ICM42688P_AccelData
 {
-<<<<<<< Updated upstream
-    uint16_t accel_x;
-    uint16_t accel_y;
-    uint16_t accel_z;
-    uint16_t gyro_x;
-    uint16_t gyro_y;
-    uint16_t gyro_z;
-=======
     int16_t accel_z;
 
     int16_t accel_p;
@@ -30,7 +22,6 @@ typedef struct ICM42688P_AccelData
     int16_t gyro_p;
     int16_t gyro_y;
     int16_t gyro_r;
->>>>>>> Stashed changes
 } ICM42688P_AccelData;
 
 int16_t ICM42688P_read_reg(uint8_t reg);

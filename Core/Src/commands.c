@@ -151,7 +151,7 @@ static CMD_STATUS perform_SIMP(const char* incoming, char* cmd_ptr){
 		return CMD_SIMP_INVLD;
 
 	// Convert from Pa to kPa
-	global_mission_data.PRESSURE = (double)pressure / 1000;
+	simulated_pressure = (double)pressure / 1000;
 	return CMD_SIMP_RX;
 }
 
