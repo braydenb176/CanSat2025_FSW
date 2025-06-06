@@ -159,7 +159,7 @@ static CMD_STATUS perform_CAL(){
 	if (!strncmp(global_mission_data.STATE, "LAUNCH_PAD", 10))
 		return CMD_CAL_INVLD;
 
-	global_mission_data.ALTITUDE = 0;
+	altitude_offset = global_mission_data.ALTITUDE;
 	is_calibrated = 1;
 	return CMD_CAL_RX;
 }
@@ -169,8 +169,13 @@ static CMD_STATUS perform_MEC(const char* incoming, char* cmd_ptr){
 	get_current_token(MAX_MEC_SIZE, mec, &cmd_ptr);
 
 	if(!strncmp(mec, "WIRE", 4)){
-		mec_wire_enable = 1;
-		return CMD_MEC_WIRE;
+		if (!strncmp(mec + 5, "ON", 2)) {
+			mec_wire_enable = 1;
+			return CMD_MEC_WIRE;
+		} else if (!strncmp(mec + 5, "OFF", 3)) {
+			mec_wire_enable = 0;
+			return CMD_MEC_WIRE;
+		}
 	}else{
 		return CMD_MEC_INVLD; //add the rest of status codes as more mechanisms added
 	}
