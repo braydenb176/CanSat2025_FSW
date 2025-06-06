@@ -204,36 +204,57 @@ int main(void)
   BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
-  uint8_t calibrated = 1;
+  uint8_t super_hot_resistor_cycle_limit = 3;
+  uint8_t super_hot_resistor_cycles = 0;
+  char command[64] = {0};
 
   init_mission_data();
 
   while (1)
   {
+    // Receive command from ground station
+    HAL_UART_Receive(&huart3, command, 64, HAL_MAX_DELAY);
+    process_command(command);
+
+    // read sensors
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
     gps_data = LC76G_read_data();
 
-	global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, calibrated);
-	calibrated = 0;
-
+    // update mission struct
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
-    global_mission_data.PRESSURE = bmp_data.pressure_kPa;
 
+    // in simulation mode, update pressure to match what is parsed from command
+    if (simulation_enable == 1)
+    {
+      global_mission_data.PRESSURE = simulated_pressure;
+    }
+    // otherwise, update pressure to match data read from sensor
+    else
+    {
+      global_mission_data.PRESSURE = bmp_data.pressure_kPa;
+    }
+    // if the calibrating flag is true, calibrate the altitude
+    global_mission_data.ALTITUDE = calculateAltitude(global_mission_data.PRESSURE, to_calibrate);
+    to_calibrate = 0; // reset the flag
+
+    // update battery voltage
     uint16_t battery_mV = 0;
-    BQ28Z610_ReadVoltage(&hi2c3, &battery_mV); // global_mission_data.VOLTAGE = BQ28Z610_ReadVoltage(&hi2c2, )
-    global_mission_data.VOLTAGE = (float)(battery_mV) / 1000.0;
+    BQ28Z610_ReadVoltage(&hi2c3, &battery_mV);
+    global_mission_data.VOLTAGE = (float)(battery_mV) / 1000.0; // convert from mV to V
 
+    // gyro broken?
     global_mission_data.GYRO_R = imu_data.gyro_z;
     global_mission_data.GYRO_P = imu_data.gyro_x;
     global_mission_data.GYRO_Y = imu_data.gyro_y;
-    global_mission_data.AUTO_GYRO_ROTATION_RATE = QENC_Get_Encoder0_Count();
+    global_mission_data.AUTO_GYRO_ROTATION_RATE = QENC_Get_Encoder0_Count(); // encoder broken?
 
     // needs to be updated
     global_mission_data.ACCEL_R = imu_data.accel_z;
     global_mission_data.ACCEL_P = imu_data.accel_x;
     global_mission_data.ACCEL_Y = imu_data.accel_y;
 
+    // update GPS
     strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
                      gps_data.time_H,
                      gps_data.time_M,
@@ -243,55 +264,73 @@ int main(void)
     global_mission_data.GPS_LONGITUDE = gps_data.lon;
     global_mission_data.GPS_SATS = gps_data.num_sat_used;
 
-    // model packet
-    char telemetry_string[200];
-    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%3.1f,%.1f,%.1f,%.1f,%d,%d,%d",
-                     global_mission_data.TEAM_ID,      // team id
-                     global_mission_data.MISSION_TIME, // temp; mission time
-                     global_mission_data.PACKET_COUNT, // temp; packet count
-                     global_mission_data.MODE,         // mode
-                     global_mission_data.STATE,        // state
-                     global_mission_data.ALTITUDE,     // temp; altitude
-                     global_mission_data.TEMPERATURE,  // temperature
-                     global_mission_data.PRESSURE,     // pressure
-                     global_mission_data.VOLTAGE,
-                     global_mission_data.GYRO_R, // gyro_r
-                     global_mission_data.GYRO_P, // gyro_p
-                     global_mission_data.GYRO_Y
-                     // gyro_y
-    );
-    // strlen = sizeof(telemetry_string);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
-    memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
-    strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
-                     global_mission_data.ACCEL_R, // accel_r
-                     global_mission_data.ACCEL_P, // accel_p
-                     global_mission_data.ACCEL_Y,
-                     global_mission_data.MAG_R,                   // temp; mag_r
-                     global_mission_data.MAG_P,                   // temp; mag_p
-                     global_mission_data.MAG_Y,                   // temp; mag_y
-                     global_mission_data.AUTO_GYRO_ROTATION_RATE, // temp; auto-gyro rotation rate
-                     global_mission_data.GPS_TIME,                // temp; gps time
-                     global_mission_data.GPS_ALTITUDE,            // temp; gps altitude
-                     global_mission_data.GPS_LATITUDE,            // temp; gps latitude
-                     global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
-                     global_mission_data.GPS_SATS,                // temp; # of gps satellites
-                     global_mission_data.CMD_ECHO);
-    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    // send the packet if telemetry is enabled
+    if (telemetry_enable == 1)
+    {
+      char telemetry_string[200];
+      strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%3.1f,%.1f,%.1f,%.1f,%d,%d,%d",
+                       global_mission_data.TEAM_ID,      // team id
+                       global_mission_data.MISSION_TIME, // temp; mission time
+                       global_mission_data.PACKET_COUNT, // temp; packet count
+                       global_mission_data.MODE,         // mode
+                       global_mission_data.STATE,        // state
+                       global_mission_data.ALTITUDE,     // temp; altitude
+                       global_mission_data.TEMPERATURE,  // temperature
+                       global_mission_data.PRESSURE,     // pressure
+                       global_mission_data.VOLTAGE,
+                       global_mission_data.GYRO_R, // gyro_r
+                       global_mission_data.GYRO_P, // gyro_p
+                       global_mission_data.GYRO_Y
+                       // gyro_y
+      );
+      // strlen = sizeof(telemetry_string);
+      HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+      memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
+      strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
+                       global_mission_data.ACCEL_R, // accel_r
+                       global_mission_data.ACCEL_P, // accel_p
+                       global_mission_data.ACCEL_Y,
+                       global_mission_data.MAG_R,                   // temp; mag_r
+                       global_mission_data.MAG_P,                   // temp; mag_p
+                       global_mission_data.MAG_Y,                   // temp; mag_y
+                       global_mission_data.AUTO_GYRO_ROTATION_RATE, // temp; auto-gyro rotation rate
+                       global_mission_data.GPS_TIME,                // temp; gps time
+                       global_mission_data.GPS_ALTITUDE,            // temp; gps altitude
+                       global_mission_data.GPS_LATITUDE,            // temp; gps latitude
+                       global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
+                       global_mission_data.GPS_SATS,                // temp; # of gps satellites
+                       global_mission_data.CMD_ECHO);
+      HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
 
-    global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
+      global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
+    }
+
+    // activate resistor
+    if (mec_wire_enable == 1)
+    {
+      // actuate resistor
+      HAL_GPIO_WritePin(DRV_PWM_GPIO_Port, DRV_PWM_Pin, GPIO_PIN_SET);
+      super_hot_resistor_cycles += 1;
+      if (super_hot_resistor_cycles >= super_hot_resistor_cycle_limit)
+      {
+        HAL_GPIO_WritePin(DRV_PWM_GPIO_Port, DRV_PWM_Pin, GPIO_PIN_RESET);
+        super_hot_resistor_cycles = 0;
+        mec_wire_enable = 0;
+      }
+    }
+    else
+    {
+      // turn resistor off
+      HAL_GPIO_WritePin(DRV_PWM_GPIO_Port, DRV_PWM_Pin, GPIO_PIN_RESET);
+      super_hot_resistor_cycles = 0;
+    }
 
     HAL_Delay(1000);
 
     HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_RESET);
     HAL_Delay(100);
     HAL_GPIO_WritePin(USR_LED_GPIO_Port, USR_LED_Pin, GPIO_PIN_SET);
-
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
 }
 
 /**
