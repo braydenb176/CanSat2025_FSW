@@ -7,8 +7,13 @@
 
 #include "global.h"
 
-volatile uint8_t transmit_enable = 0;
-volatile uint8_t simulation_enable = 0;
+// TODO: make this false before any demonstrations
+volatile uint8_t telemetry_enable = 1;
+volatile uint8_t gps_time_enable = 1;
+volatile uint8_t sim_enable = 0;
+volatile uint8_t sim_activate = 0;
+volatile uint8_t is_calibrated = 0;
+volatile uint8_t mec_wire_enable = 0;
 
 Mission_Data global_mission_data = {0};
 

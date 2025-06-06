@@ -16,7 +16,13 @@
 
 // flags
 
-extern volatile uint8_t transmit_enable;
+extern volatile uint8_t telemetry_enable;
+extern volatile uint8_t simulation_enable;
+extern volatile uint8_t gps_time_enable;
+extern volatile uint8_t sim_enable;
+extern volatile uint8_t sim_activate;
+extern volatile uint8_t is_calibrated; 
+extern volatile uint8_t mec_wire_enable;
 
 //structs
 
