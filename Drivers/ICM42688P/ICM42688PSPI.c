@@ -70,31 +70,13 @@ ICM42688P_AccelData ICM42688P_read_data()
 {
     ICM42688P_AccelData data = {0};
 
-    uint8_t buffer[12];
-    ICM42688P_disable_chip_select();
-    // This register should be correct
-    uint8_t reg = 0x1F | (1 << 7);
-    HAL_SPI_Transmit(hspi, &reg, 1, HAL_MAX_DELAY);
-    HAL_SPI_Receive(hspi, buffer, sizeof(buffer) / sizeof(buffer[0]), HAL_MAX_DELAY);
-    ICM42688P_enable_chip_select();
-
-    data.accel_x = (buffer[0] << 8) | buffer[1];
-    data.accel_y = (buffer[2] << 8) | buffer[3];
-    data.accel_z = ((buffer[4] << 8) | buffer[5]) * -1;
-
-    // Get new information.
-    uint32_t time = HAL_GetTick();
-    data.gyro_x = (buffer[6] << 8) | buffer[7];
-    data.gyro_y = (buffer[8] << 8) | buffer[9];
-    data.gyro_z = ((buffer[10] << 8) | buffer[11]) * -1;
-
-    // Calculate acceraltion from two gyro data points / time difference.
-    // data.accel_x = Get_Accel_X(data.gyro_x, time);
-    // data.accel_y = Get_Accel_Y(data.gyro_y, time);
-    // data.accel_z = Get_Accel_Z(data.gyro_z, time);
-
-    Transfer_Data(data.gyro_x, data.gyro_y, data.gyro_z, time);
-
+    data.accel_x = ICM42688P_read_reg(0x1F);
+    data.accel_y = ICM42688P_read_reg(0x21);
+    data.accel_z = ICM42688P_read_reg(0x23);
+    data.gyro_x = ICM42688P_read_reg(0x25);
+    data.gyro_y = ICM42688P_read_reg(0x27);
+    data.gyro_z = ICM42688P_read_reg(0x29);
+    
     return data;
 }
 
