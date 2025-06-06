@@ -14,6 +14,7 @@ volatile uint8_t to_calibrate = 0;
 volatile uint8_t mec_wire_enable = 0;
 volatile uint8_t simulation_enable = 0;
 volatile double altitude_offset = 0.0;
+volatile double simulated_pressure = 0.0;
 
 Mission_Data global_mission_data = {0};
 
