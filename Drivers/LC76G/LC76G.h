@@ -4,13 +4,23 @@
 #include "stm32g4xx_hal.h"
 #include "uart_interrupt.h"
 
-#define TIMEOUT 1000
+#define TIMEOUT 5
 
 /* Define GPS commands */
 
 // The following two PAIR sentences need to be revised
 // char LC76G_UPDATE_1HZ[] = "$PAIR220,1000*1F";  // Set update rate to 1 second
 // char LC76G_BAUD_115200[] = "$PAIR864,0,0,115200";   // 115200 baud
+<<<<<<< Updated upstream
+=======
+static const char LC76_ENABLE_GGA[] = "$PAIR062,0,1*3F";
+static const char LC76_DISABLE_GGL[] = "$PAIR062,1,0*3F";
+static const char LC76_DISABLE_GSA[] = "$PAIR062,2,0*3C";
+static const char LC76_DISABLE_GSV[] = "$PAIR062,3,0*3D";
+static const char LC76_DISABLE_RMC[] = "$PAIR062,4,0*3A";
+static const char LC76_DISABLE_VTG8[] = "$PAIR062,5,0*3B";
+
+>>>>>>> Stashed changes
 
 // We need: time, lat, lon, alt, numberOfSats
 // Time format: HH:MM:SS

@@ -9,6 +9,14 @@ static SPI_HandleTypeDef *hspi;
 static GPIO_TypeDef *ChipSelect_GPIO_Port;
 static uint16_t ChipSelect_Pin;
 
+<<<<<<< Updated upstream
+=======
+volatile static int16_t gyro_old_r = 0;
+volatile static int16_t gyro_old_y = 0;
+volatile static int16_t gyro_old_p = 0;
+volatile static uint32_t old_time = 0;
+
+>>>>>>> Stashed changes
 static void ICM42688P_disable_chip_select()
 {
     HAL_GPIO_WritePin(ChipSelect_GPIO_Port, ChipSelect_Pin, GPIO_PIN_RESET);
@@ -28,19 +36,19 @@ static HAL_StatusTypeDef ICM42688P_write_reg(uint8_t reg, uint8_t data)
     return HAL_OK;
 }
 
-uint16_t ICM42688P_read_reg(uint8_t reg)
+int16_t ICM42688P_read_reg(uint8_t reg)
 {
     uint8_t tx = reg | (1 << 7);
-    uint8_t rx[2] = { 0 };
+    int8_t rx[2] = {0};
     ICM42688P_disable_chip_select();
     HAL_SPI_Transmit(hspi, &tx, 1, HAL_MAX_DELAY);
 
     HAL_SPI_Receive(hspi, &rx, 1, HAL_MAX_DELAY);
     ICM42688P_enable_chip_select();
 
-    uint16_t shifted = rx[0] << 8;
-    uint16_t lower = rx[1];
-    uint16_t value = shifted | lower;
+    int16_t shifted = rx[0] << 8;
+    int16_t lower = rx[1];
+    int16_t value = shifted | lower;
     return value;
 }
 
@@ -66,10 +74,26 @@ uint8_t ICM42688P_init(SPI_TypeDef *spi_handle, GPIO_TypeDef *chip_select_port, 
     return 0;
 }
 
+int16_t Get_Accel_P(int16_t gyro_p, uint32_t time)
+{
+    return (gyro_old_p - gyro_p); // add timer later / (old_time - time);
+}
+
+int16_t Get_Accel_Y(int16_t gyro_y, uint32_t time)
+{
+    return (gyro_old_y - gyro_y); // add timer later / (old_time - time);
+}
+
+int16_t Get_Accel_R(int16_t gyro_r, uint32_t time)
+{
+    return (gyro_old_r - gyro_r); // add timer later / (old_time - time);
+}
+
 ICM42688P_AccelData ICM42688P_read_data()
 {
     ICM42688P_AccelData data = {0};
 
+<<<<<<< Updated upstream
     uint8_t buffer[12];
     ICM42688P_disable_chip_select();
     // This register should be correct
@@ -125,3 +149,24 @@ uint16_t Get_Accel_Z(uint16_t gyro_z, uint32_t time)
 {
     return (gyro_old_z - gyro_z) / (old_time - time);
 }
+=======
+    data.accel_z = ICM42688P_read_reg(0x23);
+
+    data.gyro_p = ICM42688P_read_reg(0x25);
+    data.gyro_y = ICM42688P_read_reg(0x27);
+    data.gyro_r = ICM42688P_read_reg(0x29);
+
+    uint32_t time = 0;
+
+    data.accel_p = Get_Accel_P(data.gyro_p, time);
+    data.accel_y = Get_Accel_Y(data.gyro_y, time);
+    data.accel_r = -Get_Accel_R(data.gyro_r, time);
+
+    gyro_old_p = data.gyro_p;
+    gyro_old_y = data.gyro_y;
+    gyro_old_r = data.gyro_r;
+    old_time = time;
+
+    return data;
+}
+>>>>>>> Stashed changes

@@ -213,12 +213,12 @@ int main(void)
   while (1)
   {
     // Receive command from ground station
-    HAL_UART_Receive(&huart3, command, 64, HAL_MAX_DELAY);
+    HAL_UART_Receive(&huart3, command, 64, 10);
     process_command(command);
 
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
-    gps_data = LC76G_read_data();
+    // gps_data = LC76G_read_data();
 
     // update mission struct
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
@@ -234,8 +234,8 @@ int main(void)
       global_mission_data.PRESSURE = bmp_data.pressure_kPa;
     }
     // if the calibrating flag is true, calibrate the altitude
-    global_mission_data.ALTITUDE = calculateAltitude(global_mission_data.PRESSURE, to_calibrate);
-    to_calibrate = 0; // reset the flag
+    global_mission_data.ALTITUDE = calculateAltitude(global_mission_data.PRESSURE, is_calibrated);
+    is_calibrated = 0; // reset the flag
 
     // update battery voltage
     uint16_t battery_mV = 0;
@@ -254,17 +254,22 @@ int main(void)
     global_mission_data.ACCEL_Y = imu_data.accel_y;
 
     // update GPS
-    strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
+    /*strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
                      gps_data.time_H,
                      gps_data.time_M,
                      gps_data.time_S);
     global_mission_data.GPS_ALTITUDE = gps_data.altitude;
     global_mission_data.GPS_LATITUDE = gps_data.lat;
     global_mission_data.GPS_LONGITUDE = gps_data.lon;
-    global_mission_data.GPS_SATS = gps_data.num_sat_used;
+    global_mission_data.GPS_SATS = gps_data.num_sat_used;*/
+    strcpy(global_mission_data.GPS_TIME, "XX:XX:XX");
+    global_mission_data.GPS_ALTITUDE = 0.0;
+    global_mission_data.GPS_LATITUDE = 0.0;
+    global_mission_data.GPS_LONGITUDE = 0.0;
+    global_mission_data.GPS_SATS = 0;
 
     // send the packet if telemetry is enabled
-    if (telemetry_enable == 1)
+    if (telemetry_enable)
     {
       char telemetry_string[200];
       strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%3.1f,%.1f,%.1f,%.1f,%d,%d,%d",
@@ -300,6 +305,10 @@ int main(void)
                        global_mission_data.GPS_SATS,                // temp; # of gps satellites
                        global_mission_data.CMD_ECHO);
       HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+
+      /*char test_string[30];
+      strlen = sprintf(test_string, "accel_z: %d", imu_data.accel_z);
+      HAL_UART_Transmit(&huart3, test_string, strlen, HAL_MAX_DELAY);*/
 
       global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
     }

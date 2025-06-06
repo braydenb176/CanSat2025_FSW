@@ -42,15 +42,25 @@ LC76G_gps_data LC76G_read_data()
 
     // Receive GGA sentence from GPS module
     HAL_UART_Receive(&huart5, GGA_sentence, 128, TIMEOUT);
+<<<<<<< Updated upstream
     //HAL_UART_Transmit(&huart3, GGA_sentence, strlen(buf), TIMEOUT);
+=======
+    //printf("Raw data from GPS module: %s", GGA_sentence);
+    //HAL_UART_Transmit(&huart3, GGA_sentence, strlen(GGA_sentence), TIMEOUT);
+>>>>>>> Stashed changes
 
     // GGA format:
     // $<TalkerID>GGA,<UTC>,<Lat>,<N/S>,<Lon>,<E/W>,<Quality>,<NumSatUsed>,
     // <HDOP>,<Alt>,M,<Sep>,M,<DiffAge>,<DiffStation>*<Checksum><CR><LF>
 
     // Iterate through the comma-delimited string
+<<<<<<< Updated upstream
     char *token = strok(GGA_sentence, ",");
     uint8_t tokenNum = 0;
+=======
+    char *token = strtok(GGA_sentence, ",");
+    uint8_t tokenNum = 1;
+>>>>>>> Stashed changes
     while (token != NULL && strchr(token, '$') == NULL) {
         token = strok(NULL, ",");
         tokenNum++;
@@ -114,6 +124,12 @@ LC76G_gps_data LC76G_read_data()
             default:
                 break;
         }   // End switch statement
+<<<<<<< Updated upstream
+=======
+
+        token = strtok(NULL, ",");
+        tokenNum++;
+>>>>>>> Stashed changes
     }   // End string iteration
 
     return gps_data;
