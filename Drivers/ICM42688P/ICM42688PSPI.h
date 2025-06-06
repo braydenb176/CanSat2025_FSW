@@ -21,7 +21,7 @@ typedef struct ICM42688P_AccelData
     uint16_t gyro_z;
 } ICM42688P_AccelData;
 
-uint8_t ICM42688P_read_reg(uint8_t reg);
+uint16_t ICM42688P_read_reg(uint8_t reg);
 
 ICM42688P_AccelData ICM42688P_read_data();
 
