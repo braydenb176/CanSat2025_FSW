@@ -1184,6 +1184,20 @@ static void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
 }
 
+// Needed to facilitate DMA transfer from GPS module
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+    if (huart->Instance == UART5) {
+        // gps_dma_buffer now contains 'Size' bytes of received data
+
+        // Parse data stored in DMA buffer
+        LC76G_parse_data();
+
+        // Restart DMA reception for the next burst
+        HAL_UARTEx_ReceiveToIdle_DMA(&huart5, gps_dma_buffer, GPS_DMA_BUFFER_SIZE);
+    }
+}
+
+
 /**
  * @brief GPIO Initialization Function
  * @param None
