@@ -131,17 +131,20 @@ LC76G_gps_data LC76G_read_data()
     unsigned char GGA_sentence[128] = {0};
 
     // Receive GGA sentence from GPS module
-    HAL_UART_Receive(&huart5, GGA_sentence, 128, 3000);
-    printf("Raw data from GPS module: %s", GGA_sentence);
-    HAL_UART_Transmit(&huart3, GGA_sentence, strlen(GGA_sentence), TIMEOUT);
+    // HAL_UART_Receive(&huart5, GGA_sentence, 128, TIMEOUT);
+    //HAL_UART_Transmit(&huart3, GGA_sentence, strlen(buf), TIMEOUT);
+    //printf("Raw data from GPS module: %s", GGA_sentence);
+    //HAL_UART_Transmit(&huart3, GGA_sentence, strlen(GGA_sentence), TIMEOUT);
+
 
     // GGA format:
     // $<TalkerID>GGA,<UTC>,<Lat>,<N/S>,<Lon>,<E/W>,<Quality>,<NumSatUsed>,
     // <HDOP>,<Alt>,M,<Sep>,M,<DiffAge>,<DiffStation>*<Checksum><CR><LF>
 
     // Iterate through the comma-delimited string
-    char *token = strok(GGA_sentence, ",");
+    char *token = strtok(GGA_sentence, ",");
     uint8_t tokenNum = 1;
+  
     while (token != NULL && strchr(token, '$') == NULL) {
         switch(tokenNum) {
             case 1: // <UTC>
@@ -202,8 +205,8 @@ LC76G_gps_data LC76G_read_data()
             default:
                 break;
         }   // End switch statement
-
-        token = strok(NULL, ",");
+      
+        token = strtok(NULL, ",");
         tokenNum++;
     }   // End string iteration
     */

@@ -4,7 +4,7 @@
 #include "stm32g4xx_hal.h"
 #include "uart_interrupt.h"
 
-#define TIMEOUT 1000
+#define TIMEOUT 5
 
 // DMA buffer aligned to 4-bytes
 #define GPS_DMA_BUFFER_SIZE 128

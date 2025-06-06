@@ -212,13 +212,84 @@ int main(void)
 
   while (1)
   {
+
+    // enable interrupts
+    HAL_NVIC_EnableIRQ(USART3_IRQn);
+
+    // receive command (15 bytes max?)
+    uint8_t rx_buff[15];
+    HAL_UART_Receive_IT(&huart3, rx_buff, 15);
+
+    // step1: convert rx_buff array of "uint8_t"s into array of "chars"
+    char* char_array = (char*)rx_buff;
+    char rx_string[15];
+
+    // step2: convert array of chars into string  (https://www.geeksforgeeks.org/convert-character-array-to-string-in-c/)
+    strncpy(rx_string, char_array, 20);
+    rx_string[20] = '\0';
+
+    // step3: use string::compare and chop off the first 12 characters of the string (https://cplusplus.com/reference/string/string/compare/)
+    // char cmd_prefix[12] = "CMD,3174,CX,";
+    // cmd_length = strlen(cmd_prefix);
+    // const char *sub_cmd = &rx_string[cmd_length];
+    //if (strncmp(rx_string, cmd_prefix, cmd_length) != 0) {
+    //
+    //if (strncmp(&sub_cmd, "SIM", cmd_length) != 0) {
+    //break;
+    //}
+    //elif (strncmp(&sub_cmd, "CAL", cmd_length) != 0) {
+    //break;
+    //}
+    //elif (strncmp(&sub_cmd, "MEC", cmd_length) != 0) {
+    //break;
+    //}
+    if(strncmp(rx_string,"CMD,3174,CX,ON",14)){
+    telemetry_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,CX,OFF",15)){
+    telemetry_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,ST,GPS",15)){
+
+    }
+    elif(strncmp(rx_string,"CMD,3174,SIM,ENABLE",19)){
+    simulation_pre = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,SIM,ACTIVATE",21)){
+    if(simulation_pre == 1){
+    simulation_enable = 1;}
+    }
+
+    elif(strncmp(rx_string,"CMD,3174,SIM,DISABLE",20)){
+    simulation_enable = 0;
+    }
+    // ADD SIMP
+    elif(strncmp(rx_string,"CMD,3174,SIMP,",14)){
+    char *pressure_str = rx_string + 14;
+    char *str_end;
+    int pressure_pa = strtol(rx_string + 14, &str_end, 10);
+    // if (str_end == pressure_str || *str_end != '\0')
+    // it wasn't a valid number
+    simulation_pressure = pressure_pa / 1000;
+    }
+    elif(strncmp(rx_string,"CMD,3174,CAL", 12)){
+    is_calibrated = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,ON",20)){
+    mec_wire_enable = 1;
+    }
+    elif(strncmp(rx_string,"CMD,3174,MEC,WIRE,OFF",21)){
+    mec_wire_enable = 0;
+    }
+
+    
     // Receive command from ground station
-    HAL_UART_Receive(&huart3, command, 64, HAL_MAX_DELAY);
+    HAL_UART_Receive(&huart3, command, 64, 10);
     process_command(command);
 
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
-    gps_data = LC76G_read_data();
+    // gps_data = LC76G_read_data();
 
     // update mission struct
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
@@ -234,8 +305,8 @@ int main(void)
       global_mission_data.PRESSURE = bmp_data.pressure_kPa;
     }
     // if the calibrating flag is true, calibrate the altitude
-    global_mission_data.ALTITUDE = calculateAltitude(global_mission_data.PRESSURE, to_calibrate);
-    to_calibrate = 0; // reset the flag
+    global_mission_data.ALTITUDE = calculateAltitude(global_mission_data.PRESSURE, is_calibrated);
+    is_calibrated = 0; // reset the flag
 
     // update battery voltage
     uint16_t battery_mV = 0;
@@ -243,28 +314,33 @@ int main(void)
     global_mission_data.VOLTAGE = (float)(battery_mV) / 1000.0; // convert from mV to V
 
     // gyro broken?
-    global_mission_data.GYRO_R = imu_data.gyro_z;
-    global_mission_data.GYRO_P = imu_data.gyro_x;
+    global_mission_data.GYRO_R = imu_data.gyro_r;
+    global_mission_data.GYRO_P = imu_data.gyro_p;
     global_mission_data.GYRO_Y = imu_data.gyro_y;
     global_mission_data.AUTO_GYRO_ROTATION_RATE = QENC_Get_Encoder0_Count(); // encoder broken?
 
     // needs to be updated
-    global_mission_data.ACCEL_R = imu_data.accel_z;
-    global_mission_data.ACCEL_P = imu_data.accel_x;
+    global_mission_data.ACCEL_R = imu_data.accel_r;
+    global_mission_data.ACCEL_P = imu_data.accel_p;
     global_mission_data.ACCEL_Y = imu_data.accel_y;
 
     // update GPS
-    strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
+    /*strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
                      gps_data.time_H,
                      gps_data.time_M,
                      gps_data.time_S);
     global_mission_data.GPS_ALTITUDE = gps_data.altitude;
     global_mission_data.GPS_LATITUDE = gps_data.lat;
     global_mission_data.GPS_LONGITUDE = gps_data.lon;
-    global_mission_data.GPS_SATS = gps_data.num_sat_used;
+    global_mission_data.GPS_SATS = gps_data.num_sat_used;*/
+    strcpy(global_mission_data.GPS_TIME, "XX:XX:XX");
+    global_mission_data.GPS_ALTITUDE = 0.0;
+    global_mission_data.GPS_LATITUDE = 0.0;
+    global_mission_data.GPS_LONGITUDE = 0.0;
+    global_mission_data.GPS_SATS = 0;
 
     // send the packet if telemetry is enabled
-    if (telemetry_enable == 1)
+    if (telemetry_enable)
     {
       char telemetry_string[200];
       strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%3.1f,%.1f,%.1f,%.1f,%d,%d,%d",
@@ -300,6 +376,10 @@ int main(void)
                        global_mission_data.GPS_SATS,                // temp; # of gps satellites
                        global_mission_data.CMD_ECHO);
       HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+
+      /*char test_string[30];
+      strlen = sprintf(test_string, "accel_z: %d", imu_data.accel_z);
+      HAL_UART_Transmit(&huart3, test_string, strlen, HAL_MAX_DELAY);*/
 
       global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
     }
