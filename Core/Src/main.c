@@ -216,7 +216,6 @@ int main(void)
     HAL_UART_Receive(&huart3, command, 64, HAL_MAX_DELAY);
     process_command(command);
 
-    // read sensors
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
     gps_data = LC76G_read_data();

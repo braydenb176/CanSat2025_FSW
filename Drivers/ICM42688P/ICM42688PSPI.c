@@ -28,16 +28,20 @@ static HAL_StatusTypeDef ICM42688P_write_reg(uint8_t reg, uint8_t data)
     return HAL_OK;
 }
 
-uint8_t ICM42688P_read_reg(uint8_t reg)
+uint16_t ICM42688P_read_reg(uint8_t reg)
 {
     uint8_t tx = reg | (1 << 7);
-    uint8_t rx = 0;
+    uint8_t rx[2] = { 0 };
     ICM42688P_disable_chip_select();
     HAL_SPI_Transmit(hspi, &tx, 1, HAL_MAX_DELAY);
 
     HAL_SPI_Receive(hspi, &rx, 1, HAL_MAX_DELAY);
     ICM42688P_enable_chip_select();
-    return rx;
+
+    uint16_t shifted = rx[0] << 8;
+    uint16_t lower = rx[1];
+    uint16_t value = shifted | lower;
+    return value;
 }
 
 uint8_t ICM42688P_init(SPI_TypeDef *spi_handle, GPIO_TypeDef *chip_select_port, uint16_t chip_select_gpio_pin)
