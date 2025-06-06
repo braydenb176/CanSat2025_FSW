@@ -40,6 +40,8 @@ typedef struct {
 LC76G_gps_data gps_data;
 
 /* Define functions */
+void LC76G_init();
+void LC76G_parse_data();
 LC76G_gps_data LC76G_read_data();
 // void LC76G_Send_Command(char *data);
 
