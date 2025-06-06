@@ -4,33 +4,25 @@
 
 void LC76G_init()
 {
-    /*
     // Disable all other types of NEMA sentences
+    HAL_UART_Transmit(&huart5, LC76_DISABLE_GGL, strlen(LC76_DISABLE_GGL), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
+
+    HAL_UART_Transmit(&huart5, LC76_DISABLE_GSA, strlen(LC76_DISABLE_GSA), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
+
+    HAL_UART_Transmit(&huart5, LC76_DISABLE_GSV, strlen(LC76_DISABLE_GSV), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
+
+    HAL_UART_Transmit(&huart5, LC76_DISABLE_RMC, strlen(LC76_DISABLE_RMC), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
+
+    HAL_UART_Transmit(&huart5, LC76_DISABLE_VTG8, strlen(LC76_DISABLE_VTG8), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
 
     // Enable GGA sentences
-    HAL_UART_Transmit(&huart5,LC76G_ENABLE_GGA_FORMAT, strlen(LC76G_ENABLE_GGA_FORMAT), TIMEOUT);
-    HAL_Delay(100);
-    */
-
-    // Ensure that there is a GPS fix
-    char buf[2] = {0};
-    uint16_t num_iters = 1;
-    while (buf == '\0' || num_iters == 0)
-    {
-        // Skip everything before <Quality> field
-        HAL_UART_Receive(&huart5, NULL, 41, TIMEOUT);
-        HAL_UART_Receive(&huart5, buf, 1, TIMEOUT);
-        // Skip everything after <Quality> field
-        HAL_UART_Receive(&huart5, NULL, 31, TIMEOUT);
-        HAL_Delay(100);
-
-        // If this value overflows then we've been in this loop far too long
-        num_iters++;
-    }
-
-    // Inform caller that a GPS fix was not acquired
-    //  if (num_iters == 0)
-    //  handle error
+    HAL_UART_Transmit(&huart5, LC76_ENABLE_GGA, strlen(LC76_ENABLE_GGA), TIMEOUT);
+    HAL_UART_Receive(&huart5, NULL, 32, TIMEOUT);
 }
 
 LC76G_gps_data LC76G_read_data()
