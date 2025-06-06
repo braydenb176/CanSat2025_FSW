@@ -30,6 +30,8 @@
 #include "../../Drivers/MS5607/MS5607SPI.h"
 #include "../../Drivers/BMM150/BMM150SPI.h"
 #include "../../Drivers/LC76G/LC76G.h"
+#include "../../Drivers/AMT10E2/AMT10E2.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -125,7 +127,8 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -185,6 +188,9 @@ int main(void)
   // Initialize LC76G
   LC76G_init();
 
+  // Initializing AMT10E2
+  QENC_Init_Encoder0();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -197,11 +203,10 @@ int main(void)
   BMM150_mag_data mag_data;
   LC76G_gps_data gps_data;
 
-  init_mission_data();
-  // printf("IMU is 0x%X! \n\r", test);
+  bmp_data = MS5607ReadValues();
+  global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, 1);
 
-  // HAL_Delay(10);
-  // printf("BMM is... 0x%X", bmm150.chip_id); // Not working :(
+  init_mission_data();
 
   while (1)
   {
@@ -209,12 +214,17 @@ int main(void)
     imu_data = ICM42688P_read_data();
     gps_data = LC76G_read_data();
 
+    global_mission_data.ALTITUDE = calculateAltitude(bmp_data.pressure_kPa, 0);
     global_mission_data.TEMPERATURE = bmp_data.temperature_C;
     global_mission_data.PRESSURE = bmp_data.pressure_kPa;
-    global_mission_data.VOLTAGE = (7.62 + (0.0002 * (float)(uint8_t)rand()));
-    global_mission_data.GYRO_R = imu_data.gyro_z * 2000;
-    global_mission_data.GYRO_P = imu_data.gyro_x * 2000;
-    global_mission_data.GYRO_Y = imu_data.gyro_y * 2000;
+    // global_mission_data.VOLTAGE = (7.62 + (0.0002 * (float)(uint8_t)rand()));
+    uint16_t battery_mV = 37;
+    BQ28Z610_ReadVoltage(&hi2c3, &battery_mV); // global_mission_data.VOLTAGE = BQ28Z610_ReadVoltage(&hi2c2, )
+    global_mission_data.VOLTAGE = battery_mV;
+    global_mission_data.GYRO_R = imu_data.gyro_z;
+    global_mission_data.GYRO_P = imu_data.gyro_x;
+    global_mission_data.GYRO_Y = imu_data.gyro_y;
+    global_mission_data.AUTO_GYRO_ROTATION_RATE = QENC_Get_Encoder0_Count();
 
     // needs to be updated
     global_mission_data.ACCEL_R = imu_data.accel_z;
@@ -232,7 +242,7 @@ int main(void)
 
     // model packet
     char telemetry_string[200];
-    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%.1f,%.1f,%.1f,%.1f,%d,%d,%d",
+    strlen = sprintf(telemetry_string, "%d,%s,%ld,%c,%s,%.1f,%.1f,%.1f,%d,%d,%d,%d",
                      global_mission_data.TEAM_ID,      // team id
                      global_mission_data.MISSION_TIME, // temp; mission time
                      global_mission_data.PACKET_COUNT, // temp; packet count
@@ -248,7 +258,7 @@ int main(void)
                      // gyro_y
     );
     // strlen = sizeof(telemetry_string);
-    //HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
     memset(telemetry_string, 0, sizeof(telemetry_string)); // flush array
     strlen = sprintf(telemetry_string, ",%d,%d,%d,%.1f,%.1f,%.1f,%d,%s,%.1f,%.4f,%.4f,%d,%s",
                      global_mission_data.ACCEL_R, // accel_r
@@ -264,7 +274,7 @@ int main(void)
                      global_mission_data.GPS_LONGITUDE,           // temp; gps longitude
                      global_mission_data.GPS_SATS,                // temp; # of gps satellites
                      global_mission_data.CMD_ECHO);
-    //HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart3, telemetry_string, strlen, HAL_MAX_DELAY);
 
     global_mission_data.PACKET_COUNT = global_mission_data.PACKET_COUNT + 1;
 
@@ -485,7 +495,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00C12166;
+  hi2c3.Init.Timing = 0x10B17DB5;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

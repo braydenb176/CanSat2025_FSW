@@ -1,8 +1,4 @@
-#include "../STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h"
-
-// TIM handles, should be defined/initialized elsewhere (e.g., in main or HAL config)
-extern TIM_HandleTypeDef htim1; // Encoder 0
-extern TIM_HandleTypeDef htim8; // Encoder 1
+#include "AMT10E2.h"
 
 // Initialize encoder interface on TIM1
 void QENC_Init_Encoder0(void) {
