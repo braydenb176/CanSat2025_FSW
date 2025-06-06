@@ -328,6 +328,7 @@ int main(void)
 
     bmp_data = MS5607ReadValues();
     imu_data = ICM42688P_read_data();
+    mag_data = BMM150_read_mag_data();
     // gps_data = LC76G_read_data();
 
     // update mission struct
@@ -362,6 +363,11 @@ int main(void)
     global_mission_data.ACCEL_R = imu_data.accel_r;
     global_mission_data.ACCEL_P = imu_data.accel_p;
     global_mission_data.ACCEL_Y = imu_data.accel_y;
+
+    // Magnitutude
+    global_mission_data.MAG_P = mag_data.x;
+    global_mission_data.MAG_R = mag_data.z;
+    global_mission_data.MAG_Y = mag_data.y;
 
     // update GPS
     /*strlen = sprintf(global_mission_data.GPS_TIME, "%d:%d:%d",
