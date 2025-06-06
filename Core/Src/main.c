@@ -243,14 +243,14 @@ int main(void)
     global_mission_data.VOLTAGE = (float)(battery_mV) / 1000.0; // convert from mV to V
 
     // gyro broken?
-    global_mission_data.GYRO_R = imu_data.gyro_z;
-    global_mission_data.GYRO_P = imu_data.gyro_x;
+    global_mission_data.GYRO_R = imu_data.gyro_r;
+    global_mission_data.GYRO_P = imu_data.gyro_p;
     global_mission_data.GYRO_Y = imu_data.gyro_y;
     global_mission_data.AUTO_GYRO_ROTATION_RATE = QENC_Get_Encoder0_Count(); // encoder broken?
 
     // needs to be updated
-    global_mission_data.ACCEL_R = imu_data.accel_z;
-    global_mission_data.ACCEL_P = imu_data.accel_x;
+    global_mission_data.ACCEL_R = imu_data.accel_r;
+    global_mission_data.ACCEL_P = imu_data.accel_p;
     global_mission_data.ACCEL_Y = imu_data.accel_y;
 
     // update GPS

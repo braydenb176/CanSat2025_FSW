@@ -9,6 +9,12 @@ static SPI_HandleTypeDef *hspi;
 static GPIO_TypeDef *ChipSelect_GPIO_Port;
 static uint16_t ChipSelect_Pin;
 
+
+volatile static uint16_t gyro_old_r = 0;
+volatile static uint16_t gyro_old_y = 0;
+volatile static uint16_t gyro_old_p = 0;
+volatile static uint32_t old_time = 0;
+
 static void ICM42688P_disable_chip_select()
 {
     HAL_GPIO_WritePin(ChipSelect_GPIO_Port, ChipSelect_Pin, GPIO_PIN_RESET);
@@ -70,32 +76,27 @@ ICM42688P_AccelData ICM42688P_read_data()
 {
     ICM42688P_AccelData data = {0};
 
-    data.accel_x = ICM42688P_read_reg(0x1F);
-    data.accel_y = ICM42688P_read_reg(0x21);
     data.accel_z = ICM42688P_read_reg(0x23);
-    data.gyro_x = ICM42688P_read_reg(0x25);
-    data.gyro_y = ICM42688P_read_reg(0x27);
-    data.gyro_z = ICM42688P_read_reg(0x29);
     
+    data.gyro_p = ICM42688P_read_reg(0x25);
+    data.gyro_y = ICM42688P_read_reg(0x27);
+    data.gyro_r = ICM42688P_read_reg(0x29);
+
+    data.accel_p = Get_Accel_P(data.gyro_p, HAL_GetTick());
+    data.accel_y = Get_Accel_Y(data.gyro_y, HAL_GetTick());
+    data.accel_r = -Get_Accel_R(data.gyro_r, HAL_GetTick());
+
+    gyro_old_p = data.gyro_p;
+    gyro_old_y = data.gyro_y;
+    gyro_old_r = data.gyro_r;
+    old_time = HAL_GetTick();
+
     return data;
 }
 
-int16_t gyro_old_x = 0;
-int16_t gyro_old_y = 0;
-int16_t gyro_old_z = 0;
-int32_t old_time = 0; // Might need to reinitialized to actual start.
-
-void Transfer_Data(uint16_t x, uint16_t y, uint16_t z, uint32_t time)
+uint16_t Get_Accel_P(uint16_t gyro_p, uint32_t time)
 {
-    gyro_old_x = x;
-    gyro_old_y = y;
-    gyro_old_z = z;
-    old_time = time;
-}
-
-uint16_t Get_Accel_X(uint16_t gyro_x, uint32_t time)
-{
-    return (gyro_old_x - gyro_x) / (old_time - time);
+    return (gyro_old_p - gyro_p) / (old_time - time);
 }
 
 uint16_t Get_Accel_Y(uint16_t gyro_y, uint32_t time)
@@ -103,7 +104,7 @@ uint16_t Get_Accel_Y(uint16_t gyro_y, uint32_t time)
     return (gyro_old_y - gyro_y) / (old_time - time);
 }
 
-uint16_t Get_Accel_Z(uint16_t gyro_z, uint32_t time)
+uint16_t Get_Accel_R(uint16_t gyro_r, uint32_t time)
 {
-    return (gyro_old_z - gyro_z) / (old_time - time);
+    return (gyro_old_r - gyro_r) / (old_time - time);
 }
