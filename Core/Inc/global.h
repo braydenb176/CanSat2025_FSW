@@ -21,6 +21,7 @@ extern volatile uint8_t simulation_enable;
 extern volatile uint8_t gps_time_enable;
 extern volatile uint8_t is_calibrated; 
 extern volatile uint8_t mec_wire_enable;
+extern volatile double altitude_offset;
 
 //structs
 
